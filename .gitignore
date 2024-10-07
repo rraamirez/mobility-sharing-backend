@@ -1,0 +1,42 @@
+# Compiled class file
+*.class
+
+# Maven target directory
+target/
+
+# Log files
+*.log
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+*.ipr
+*.iws
+
+# Spring Boot specific
+spring.log
+*.jar
+*.war
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Environment variable files
+.env
+
+# Build directories
+build/
+bin/
+
+# JUnit test output
+surefire-reports/
+
+# Eclipse project files
+.classpath
+.project
+.settings/
+
+# Additional IDE files (NetBeans, etc.)
+nbproject/private/
