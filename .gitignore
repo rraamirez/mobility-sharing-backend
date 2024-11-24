@@ -41,8 +41,5 @@ surefire-reports/
 # Additional IDE files (NetBeans, etc.)
 nbproject/private/
 
-# Database folder (exclude everything in bd/mobility_sharing_docker)
-bd/mobility_sharing_docker/
-
-# Allow docker-compose.yml to be tracked
-!bd/docker-compose.yml
+# Excluir todo en la carpeta bd
+bd/*
