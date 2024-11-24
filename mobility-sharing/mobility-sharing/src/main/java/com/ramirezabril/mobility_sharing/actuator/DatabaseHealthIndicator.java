@@ -23,7 +23,7 @@ public class DatabaseHealthIndicator implements HealthIndicator {
     @Override
     public Health health() {
         try {
-            jdbcTemplate.queryForObject("SELECT 1", Integer.class);  // Simple query to check DB connectivity
+            jdbcTemplate.queryForObject("SELECT 1", Integer.class);
             return Health.up().withDetail("database", "connected").build();
         } catch (Exception e) {
             return Health.down(e).withDetail("database", "not connected").build();
