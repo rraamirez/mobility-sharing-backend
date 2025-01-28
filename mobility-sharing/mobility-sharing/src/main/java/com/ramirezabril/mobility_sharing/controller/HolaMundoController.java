@@ -1,4 +1,4 @@
-package com.ramirezabril.mobility_sharing.actuator.controller;
+package com.ramirezabril.mobility_sharing.controller;
 
 
 import org.springframework.http.ResponseEntity;
