@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: mobility-sharing
+
+  datasource:
+    url: jdbc:mysql://localhost:3307/mobility_sharing_docker
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  security:
+    user:
+      name: raul
+      password: raul
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info,health,metrics,beans,env,readiness,liveness
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /doc
