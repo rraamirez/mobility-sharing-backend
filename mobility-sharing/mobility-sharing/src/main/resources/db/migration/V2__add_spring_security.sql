@@ -1,0 +1,9 @@
+CREATE TABLE tokens (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    token       VARCHAR(255) NOT NULL UNIQUE,
+    token_type  ENUM('BEARER') NOT NULL DEFAULT 'BEARER',
+    is_revoked  BOOLEAN NOT NULL DEFAULT FALSE,
+    is_expired  BOOLEAN NOT NULL DEFAULT FALSE,
+    user_id     INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

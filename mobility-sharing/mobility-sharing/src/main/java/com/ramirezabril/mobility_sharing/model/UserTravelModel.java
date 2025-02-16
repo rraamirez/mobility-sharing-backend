@@ -11,9 +11,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserTravelModel {
+
     private Integer id;
     private UserModel user;
     private TravelModel travel;
     private Status status;
     private LocalDateTime createdAt;
+
 }

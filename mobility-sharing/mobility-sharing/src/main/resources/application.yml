@@ -18,6 +18,14 @@ spring:
       name: raul
       password: raul
 
+application:
+  security:
+    jwt:
+      secret-key: aW5jcmltaW5hdG9yaWFsLXNlY3JldC1rZXktMTIzNDU2
+      expiration: 86400000
+      refresh-token:
+        expiration: 604800000
+
 management:
   endpoints:
     web:

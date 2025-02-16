@@ -11,9 +11,10 @@ public class UserConverter {
                 user.getName(),
                 user.getEmail(),
                 user.getPassword(),
-                user.getNickname(),
+                user.getUsername(),
                 user.getRupeeWallet(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                RoleConverter.toRoleModel(user.getRole())
         );
     }
 
@@ -27,9 +28,10 @@ public class UserConverter {
         user.setName(userModel.getName());
         user.setEmail(userModel.getEmail());
         user.setPassword(userModel.getPassword());
-        user.setNickname(userModel.getNickname());
+        user.setUsername(userModel.getUsername());
         user.setRupeeWallet(userModel.getRupeeWallet());
         user.setCreatedAt(userModel.getCreatedAt());
+        user.setRole(RoleConverter.toRoleEntity(userModel.getRole()));
 
         return user;
     }

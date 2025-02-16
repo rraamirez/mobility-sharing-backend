@@ -15,7 +15,9 @@ public class UserModel {
     private String name;
     private String email;
     private String password;
-    private String nickname;
+    private String username;
     private Integer rupeeWallet = 0;
     private LocalDateTime createdAt;
+    private RoleModel role;
+
 }
