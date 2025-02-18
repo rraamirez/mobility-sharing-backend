@@ -20,6 +20,7 @@ public class JwtService {
     @Value("${application.security.jwt.refresh-token.expiration}")
     private long refreshExpiration;
 
+    //with this method you can get username from token
     public String extractUsername(String token) {
         return Jwts.parser()
                 .verifyWith(getSignInKey())

@@ -1,6 +1,7 @@
 package com.ramirezabril.mobility_sharing.service;
 
 import com.ramirezabril.mobility_sharing.model.RatingModel;
+import com.ramirezabril.mobility_sharing.model.UserModel;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,9 +11,9 @@ public interface RatingService {
 
     Optional<RatingModel> retrieveRating(int id);
 
-    RatingModel addRating(RatingModel rating);
+    RatingModel addRating(RatingModel rating, UserModel raterUsername);
 
-    Optional<RatingModel> updateRating(RatingModel rating);
+    Optional<RatingModel> updateRating(RatingModel rating, UserModel raterUsername);
 
     Optional<RatingModel> deleteRating(int id);
 

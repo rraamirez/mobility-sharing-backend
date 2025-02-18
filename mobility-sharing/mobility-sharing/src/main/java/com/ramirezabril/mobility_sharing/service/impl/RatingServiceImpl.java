@@ -1,7 +1,10 @@
 package com.ramirezabril.mobility_sharing.service.impl;
 
 import com.ramirezabril.mobility_sharing.converter.RatingConverter;
+import com.ramirezabril.mobility_sharing.converter.UserConverter;
+import com.ramirezabril.mobility_sharing.entity.Rating;
 import com.ramirezabril.mobility_sharing.model.RatingModel;
+import com.ramirezabril.mobility_sharing.model.UserModel;
 import com.ramirezabril.mobility_sharing.repository.RatingRepository;
 import com.ramirezabril.mobility_sharing.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,21 +33,33 @@ public class RatingServiceImpl implements RatingService {
     }
 
     @Override
-    public RatingModel addRating(RatingModel rating) {
+    public RatingModel addRating(RatingModel rating, UserModel raterUsername) {
+        rating.setRatingUser(raterUsername);
         var savedRating = ratingRepository.save(RatingConverter.toRatingEntity(rating));
         return RatingConverter.toRatingModel(savedRating);
     }
 
     @Override
-    public Optional<RatingModel> updateRating(RatingModel rating) {
-        return ratingRepository.findById(rating.getId())
-                .map(existingRating -> {
-                    var updatedEntity = RatingConverter.toRatingEntity(rating);
-                    updatedEntity.setId(existingRating.getId());
-                    var savedRating = ratingRepository.save(updatedEntity);
-                    return RatingConverter.toRatingModel(savedRating);
-                });
+    public Optional<RatingModel> updateRating(RatingModel rating, UserModel raterUsername) {
+        Optional<RatingModel> existingRatingOptional = ratingRepository.findById(rating.getId())
+                .map(RatingConverter::toRatingModel);
+
+        if (existingRatingOptional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Rating existingRating = RatingConverter.toRatingEntity(existingRatingOptional.get());
+        Rating updatedEntity = RatingConverter.toRatingEntity(rating);
+
+        updatedEntity.setId(existingRating.getId());
+        updatedEntity.setRatingUser(UserConverter.toUserEntity(raterUsername));
+
+        Rating savedRating = ratingRepository.save(updatedEntity);
+        RatingModel updatedRatingModel = RatingConverter.toRatingModel(savedRating);
+
+        return Optional.of(updatedRatingModel);
     }
+
 
     @Override
     public Optional<RatingModel> deleteRating(int id) {
