@@ -1,4 +1,6 @@
 package com.ramirezabril.mobility_sharing.service.impl;
 
-public class UserServiceImpl {
+import com.ramirezabril.mobility_sharing.service.UserService;
+
+public class UserServiceImpl implements UserService {
 }
