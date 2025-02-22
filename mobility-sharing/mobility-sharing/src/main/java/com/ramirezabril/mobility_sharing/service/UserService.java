@@ -6,4 +6,10 @@ import java.util.Optional;
 
 public interface UserService {
     Optional<UserModel> getUserByToken(String token);
+
+    void updateRupeeWallet(Integer rupees, Integer userId);
+
+    Optional<UserModel> updateUser(UserModel user, String token);
+
+    void deleteUser(Integer userId, String token);
 }

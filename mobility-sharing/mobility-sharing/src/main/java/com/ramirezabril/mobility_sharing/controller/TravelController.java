@@ -6,8 +6,10 @@ import com.ramirezabril.mobility_sharing.service.TravelService;
 import com.ramirezabril.mobility_sharing.service.UserService;
 import com.ramirezabril.mobility_sharing.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -37,26 +39,41 @@ public class TravelController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<TravelModel> createTravel(@RequestBody TravelModel travelModel, @RequestHeader("Authorization") String authHeader) {
-        String token = tokenUtil.extractToken(authHeader);
-        UserModel userLogged = null;
-        if (token != null) {
-            userLogged = userService.getUserByToken(token).get();
+    public ResponseEntity<TravelModel> createTravel(
+            @RequestBody TravelModel travelModel,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.ok().body(travelService.createTravel(travelModel, userLogged));
+
+        String token = tokenUtil.extractToken(authHeader);
+        UserModel userLogged = userService.getUserByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        TravelModel createdTravel = travelService.createTravel(travelModel, userLogged);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdTravel);
     }
 
+
     @PutMapping("/")
-    public ResponseEntity<TravelModel> updateTravel(@RequestBody TravelModel travelModel, @RequestHeader("Authorization") String authHeader) {
-        String token = tokenUtil.extractToken(authHeader);
-        UserModel userLogged = null;
-        if (token != null) {
-            userLogged = userService.getUserByToken(token).get();
+    public ResponseEntity<TravelModel> updateTravel(
+            @RequestBody TravelModel travelModel,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
+        String token = tokenUtil.extractToken(authHeader);
+        UserModel userLogged = userService.getUserByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
         return travelService.updateTravel(travelModel, userLogged)
-                .map(updatedTravel -> ResponseEntity.ok().body(updatedTravel))
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTravel(@PathVariable Integer id, @RequestHeader("Authorization") String authHeader) {
