@@ -34,7 +34,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers("/auth/**")
+                        req.requestMatchers("/auth/**", "/doc", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**")
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated()
@@ -56,7 +56,6 @@ public class SecurityConfig {
             final HttpServletRequest request, final HttpServletResponse response,
             final Authentication authentication
     ) {
-
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return;
@@ -73,3 +72,4 @@ public class SecurityConfig {
         }
     }
 }
+

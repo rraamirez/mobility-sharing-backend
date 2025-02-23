@@ -3,10 +3,10 @@ spring:
     name: mobility-sharing
 
   datasource:
-    url: jdbc:mysql://localhost:3307/mobility_sharing_docker
-    username: root
-    password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_DRIVER_CLASS}
 
   jpa:
     hibernate:
@@ -15,33 +15,46 @@ spring:
 
   security:
     user:
-      name: raul
-      password: raul
+      name: ${SPRING_SECURITY_USER_NAME}
+      password: ${SPRING_SECURITY_USER_PASSWORD}
 
 application:
   security:
     jwt:
-      secret-key: aW5jcmltaW5hdG9yaWFsLXNlY3JldC1rZXktMTIzNDU2
-      expiration: 86400000
+      secret-key: ${JWT_SECRET_KEY}
+      expiration: ${JWT_EXPIRATION}
       refresh-token:
-        expiration: 604800000
+        expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
 
 management:
-  endpoints:
-    web:
-      exposure:
-        include: info,health,metrics,beans,env,readiness,liveness
+  server:
+    port: 8081
   endpoint:
     health:
       probes:
         enabled: true
-      show-details: always
+      group:
+        liveness:
+          include:
+            - db
+  endpoints:
+    web:
+      exposure:
+        include: health
   health:
+    defaults:
+      enabled: true
+    mail:
+      enabled: false
+    ping:
+      enabled: true
     livenessstate:
       enabled: true
     readinessstate:
       enabled: true
+    diskspace:
+      enabled: true
 
 springdoc:
   swagger-ui:
-    path: /doc
+    path: ${SWAGGER_UI_PATH}
