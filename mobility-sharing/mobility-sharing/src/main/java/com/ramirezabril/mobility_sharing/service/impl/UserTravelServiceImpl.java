@@ -64,7 +64,7 @@ public class UserTravelServiceImpl implements UserTravelService {
     }
 
     @Override
-    public List<UserTravelModel> getUserTravelsByTravelId(int userId, boolean includeAll) {
+    public List<UserTravelModel> getUserTravelsByTravelId(int userId) {
         return userTravelRepository.findByTravel_Id(userId).stream().map(UserTravelConverter::toUserTravelModel).toList();
     }
 }

@@ -36,13 +36,10 @@ public class RatingServiceImplTest {
 
     @Test
     void testRetrieveRatings() {
-        // Arrange
-        when(ratingRepository.findAll()).thenReturn(List.of(new Rating())); // Mock response without any() here
+        when(ratingRepository.findAll()).thenReturn(List.of(new Rating()));
 
-        // Act
         var result = ratingService.retrieveRatings();
 
-        // Assert
         assertNotNull(result);
         assertFalse(result.isEmpty());
         verify(ratingRepository, times(1)).findAll();
@@ -51,15 +48,12 @@ public class RatingServiceImplTest {
 
     @Test
     void testRetrieveRating() {
-        // Arrange
         int id = 1;
         RatingModel ratingModel = new RatingModel();
-        when(ratingRepository.findById(id)).thenReturn(Optional.of(new Rating())); // mock repository response
+        when(ratingRepository.findById(id)).thenReturn(Optional.of(new Rating()));
 
-        // Act
         var result = ratingService.retrieveRating(id);
 
-        // Assert
         assertTrue(result.isPresent());
         assertEquals(ratingModel, result.get());
         verify(ratingRepository, times(1)).findById(id);
@@ -67,22 +61,18 @@ public class RatingServiceImplTest {
 
     @Test
     void testAddRating() {
-        // Arrange
         RatingModel ratingModel = new RatingModel();
         UserModel userModel = new UserModel();
-        when(ratingRepository.save(any())).thenReturn(new Rating()); // mock save
+        when(ratingRepository.save(any())).thenReturn(new Rating());
 
-        // Act
         var result = ratingService.addRating(ratingModel, userModel);
 
-        // Assert
         assertNotNull(result);
         verify(ratingRepository, times(1)).save(any());
     }
 
     @Test
     void testUpdateRating() {
-        // Arrange
         int ratingId = 1;
         RatingModel ratingModel = new RatingModel();
         ratingModel.setId(ratingId);
@@ -92,10 +82,8 @@ public class RatingServiceImplTest {
         when(ratingRepository.findById(anyInt())).thenReturn(Optional.of(rating));
         when(ratingRepository.save(any())).thenReturn(new Rating());
 
-        // Act
         var result = ratingService.updateRating(ratingModel, userModel);
 
-        // Assert
         assertTrue(result.isPresent());
         verify(ratingRepository, times(1)).findById(ratingId);
         verify(ratingRepository, times(1)).save(any());
@@ -103,16 +91,12 @@ public class RatingServiceImplTest {
 
     @Test
     void testDeleteRating() {
-        // Arrange
         int id = 1;
-        RatingModel ratingModel = new RatingModel();
         when(ratingRepository.findById(id)).thenReturn(Optional.of(new Rating()));
         when(ratingRepository.save(any())).thenReturn(new Rating());
 
-        // Act
         var result = ratingService.deleteRating(id);
 
-        // Assert
         assertTrue(result.isPresent());
         verify(ratingRepository, times(1)).findById(id);
         verify(ratingRepository, times(1)).delete(any());

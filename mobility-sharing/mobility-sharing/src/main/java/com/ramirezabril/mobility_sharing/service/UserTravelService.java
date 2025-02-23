@@ -18,6 +18,6 @@ public interface UserTravelService {
 
     List<UserTravelModel> getUserTravelsByUser(int userId);
 
-    List<UserTravelModel> getUserTravelsByTravelId(int userId, boolean includeAll);
+    List<UserTravelModel> getUserTravelsByTravelId(int userId);
 
 }

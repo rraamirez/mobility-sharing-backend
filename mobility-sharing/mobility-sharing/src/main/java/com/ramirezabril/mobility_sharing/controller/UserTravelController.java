@@ -130,6 +130,6 @@ public class UserTravelController {
         userService.getUserByToken(token)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
-        return ResponseEntity.ok().body(userTravelService.getUserTravelsByTravelId(travelId, false));
+        return ResponseEntity.ok().body(userTravelService.getUserTravelsByTravelId(travelId));
     }
 }
