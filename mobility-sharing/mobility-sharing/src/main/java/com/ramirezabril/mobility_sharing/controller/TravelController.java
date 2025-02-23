@@ -55,6 +55,33 @@ public class TravelController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTravel);
     }
 
+    @GetMapping("/recurrent-travel")
+    public ResponseEntity<List<List<TravelModel>>> getRecurrentTravels(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        var recurrentTravelsMatrix = travelService.getRecurringTravels();
+        return ResponseEntity.ok().body(recurrentTravelsMatrix);
+    }
+
+    @PostMapping("/recurrent-travel")
+    public ResponseEntity<List<TravelModel>> createRecurrentTravel(
+            @RequestBody List<TravelModel> travelModels,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = tokenUtil.extractToken(authHeader);
+        UserModel userLogged = userService.getUserByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        List<TravelModel> createdTravels = travelService.createRecurringTravels(travelModels, userLogged);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdTravels);
+    }
 
     @PutMapping("/")
     public ResponseEntity<TravelModel> updateTravel(
@@ -73,7 +100,6 @@ public class TravelController {
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
-
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTravel(@PathVariable Integer id, @RequestHeader("Authorization") String authHeader) {

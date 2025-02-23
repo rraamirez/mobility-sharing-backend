@@ -42,6 +42,10 @@ public class Travel {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne
+    @JoinColumn(name = "travel_recurrence_id")
+    private TravelRecurrence travelRecurrence;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

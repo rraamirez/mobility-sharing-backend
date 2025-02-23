@@ -1,20 +1,29 @@
 package com.ramirezabril.mobility_sharing.service.impl;
 
 import com.ramirezabril.mobility_sharing.converter.TravelConverter;
+import com.ramirezabril.mobility_sharing.converter.TravelRecurrenceConverter;
+import com.ramirezabril.mobility_sharing.entity.Travel;
+import com.ramirezabril.mobility_sharing.entity.TravelRecurrence;
 import com.ramirezabril.mobility_sharing.model.TravelModel;
 import com.ramirezabril.mobility_sharing.model.UserModel;
+import com.ramirezabril.mobility_sharing.repository.TravelRecurrenceRepository;
 import com.ramirezabril.mobility_sharing.repository.TravelRepository;
 import com.ramirezabril.mobility_sharing.service.TravelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service("travelService")
 public class TravelServiceImpl implements TravelService {
     @Autowired
     private TravelRepository travelRepository;
+
+    @Autowired
+    private TravelRecurrenceRepository travelRecurrenceRepository;
 
     @Override
     public Optional<TravelModel> getTravelById(Integer id) {
@@ -31,6 +40,39 @@ public class TravelServiceImpl implements TravelService {
         travelModel.setDriver(driver);
         var savedTravel = travelRepository.save(TravelConverter.toTravelEntity(travelModel));
         return TravelConverter.toTravelModel(savedTravel);
+    }
+
+    @Override
+    public List<TravelModel> createRecurringTravels(List<TravelModel> travelModels, UserModel driver) {
+        var travelRecurrence = travelRecurrenceRepository.save(new TravelRecurrence());
+
+        travelModels.forEach(travelModel -> {
+            travelModel.setDriver(driver);
+            travelModel.setTravelRecurrenceModel(TravelRecurrenceConverter.entityToModel(travelRecurrence));
+        });
+
+        List<Travel> travelEntities = travelModels.stream()
+                .map(TravelConverter::toTravelEntity)
+                .toList();
+
+        List<Travel> savedTravels = travelRepository.saveAll(travelEntities);
+
+        return savedTravels.stream()
+                .map(TravelConverter::toTravelModel)
+                .toList();
+    }
+
+    @Override
+    public List<List<TravelModel>> getRecurringTravels() {
+        var allRecurringTravels = travelRepository.getRecurringTravels().stream()
+                .map(TravelConverter::toTravelModel)
+                .toList();
+
+        Map<Integer, List<TravelModel>> recurringTravels = allRecurringTravels.stream()
+                .collect(Collectors.groupingBy(travel -> travel.getTravelRecurrenceModel() != null
+                        ? travel.getTravelRecurrenceModel().getId() : null));
+
+        return recurringTravels.values().stream().toList();
     }
 
 

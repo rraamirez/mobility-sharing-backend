@@ -14,6 +14,10 @@ public interface TravelService {
 
     TravelModel createTravel(TravelModel travelModel, UserModel driver);
 
+    List<TravelModel> createRecurringTravels(List<TravelModel> travelModel, UserModel driver);
+
+    List<List<TravelModel>> getRecurringTravels();
+
     Optional<TravelModel> updateTravel(TravelModel travelModel, UserModel driver);
 
     void deleteTravel(Integer id);

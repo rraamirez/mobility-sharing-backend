@@ -6,7 +6,9 @@ import com.ramirezabril.mobility_sharing.model.TravelModel;
 public class TravelConverter {
 
     public static TravelModel toTravelModel(Travel travel) {
-        return travel == null ? null : new TravelModel(
+        if (travel == null) return null;
+
+        return new TravelModel(
                 travel.getId(),
                 UserConverter.toUserModel(travel.getDriver()),
                 travel.getOrigin(),
@@ -14,14 +16,14 @@ public class TravelConverter {
                 travel.getDate(),
                 travel.getTime(),
                 travel.getPrice(),
-                travel.getCreatedAt()
+                travel.getCreatedAt(),
+                (travel.getTravelRecurrence() != null) ?
+                        TravelRecurrenceConverter.entityToModel(travel.getTravelRecurrence()) : null
         );
     }
 
     public static Travel toTravelEntity(TravelModel travelModel) {
-        if (travelModel == null) {
-            return null;
-        }
+        if (travelModel == null) return null;
 
         Travel travel = new Travel();
         travel.setId(travelModel.getId());
@@ -32,6 +34,10 @@ public class TravelConverter {
         travel.setTime(travelModel.getTime());
         travel.setPrice(travelModel.getPrice());
         travel.setCreatedAt(travelModel.getCreatedAt());
+        travel.setTravelRecurrence(
+                (travelModel.getTravelRecurrenceModel() != null) ?
+                        TravelRecurrenceConverter.modelToEntity(travelModel.getTravelRecurrenceModel()) : null // Maneja null
+        );
 
         return travel;
     }

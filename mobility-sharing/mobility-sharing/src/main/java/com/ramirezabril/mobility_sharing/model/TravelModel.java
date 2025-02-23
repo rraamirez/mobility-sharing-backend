@@ -12,7 +12,6 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TravelModel {
-
     private Integer id;
     private UserModel driver;
     private String origin;
@@ -21,5 +20,5 @@ public class TravelModel {
     private LocalTime time;
     private Integer price;
     private LocalDateTime createdAt;
-
+    private TravelRecurrenceModel travelRecurrenceModel;
 }

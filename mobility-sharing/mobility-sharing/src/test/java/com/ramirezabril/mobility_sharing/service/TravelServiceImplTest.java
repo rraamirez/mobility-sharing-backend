@@ -1,8 +1,11 @@
 package com.ramirezabril.mobility_sharing.service;
 
 import com.ramirezabril.mobility_sharing.converter.TravelConverter;
+import com.ramirezabril.mobility_sharing.entity.TravelRecurrence;
 import com.ramirezabril.mobility_sharing.model.TravelModel;
+import com.ramirezabril.mobility_sharing.model.TravelRecurrenceModel;
 import com.ramirezabril.mobility_sharing.model.UserModel;
+import com.ramirezabril.mobility_sharing.repository.TravelRecurrenceRepository;
 import com.ramirezabril.mobility_sharing.repository.TravelRepository;
 import com.ramirezabril.mobility_sharing.service.impl.TravelServiceImpl;
 import com.ramirezabril.mobility_sharing.util.TokenUtil;
@@ -22,6 +25,9 @@ class TravelServiceImplTest {
 
     @Mock
     private TravelRepository travelRepository;
+
+    @Mock
+    private TravelRecurrenceRepository travelRecurrenceRepository;
 
     @Mock
     private UserService userService;
@@ -159,5 +165,67 @@ class TravelServiceImplTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         verify(travelRepository, times(1)).findByOriginAndDestination(origin, destination);
+    }
+
+    @Test
+    void testCreateRecurringTravels_AssignsSameTravelRecurrenceToAll() {
+        TravelRecurrenceModel travelRecurrenceModel = new TravelRecurrenceModel();
+        travelRecurrenceModel.setId(1);
+
+        List<TravelModel> travelModels = List.of(
+                new TravelModel(),
+                new TravelModel(),
+                new TravelModel()
+        );
+
+        UserModel driver = new UserModel();
+        when(travelRecurrenceRepository.save(any(TravelRecurrence.class)))
+                .thenReturn(new TravelRecurrence());
+
+        List<TravelModel> createdTravels = travelService.createRecurringTravels(travelModels, driver);
+
+        assertNotNull(createdTravels);
+        createdTravels.forEach(travel -> {
+            assertNotNull(travel.getTravelRecurrenceModel());
+            assertEquals(travelRecurrenceModel.getId(), travel.getTravelRecurrenceModel().getId());
+        });
+
+        verify(travelRecurrenceRepository, times(1)).save(any(TravelRecurrence.class));
+    }
+
+    @Test
+    void testGetRecurringTravels() {
+        // Arrange
+        TravelRecurrenceModel travelRecurrenceModel1 = new TravelRecurrenceModel();
+        travelRecurrenceModel1.setId(1);
+
+        TravelRecurrenceModel travelRecurrenceModel2 = new TravelRecurrenceModel();
+        travelRecurrenceModel2.setId(2);
+
+        TravelModel travelModel1 = new TravelModel();
+        travelModel1.setTravelRecurrenceModel(travelRecurrenceModel1);
+
+        TravelModel travelModel2 = new TravelModel();
+        travelModel2.setTravelRecurrenceModel(travelRecurrenceModel1);
+
+        TravelModel travelModel3 = new TravelModel();
+        travelModel3.setTravelRecurrenceModel(travelRecurrenceModel2);
+
+        // When
+        when(travelRepository.getRecurringTravels())
+                .thenReturn(List.of(
+                        TravelConverter.toTravelEntity(travelModel1),
+                        TravelConverter.toTravelEntity(travelModel2),
+                        TravelConverter.toTravelEntity(travelModel3)
+                ));
+
+        // Act
+        List<List<TravelModel>> result = travelService.getRecurringTravels();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.size()); // Expect two groups based on travelRecurrenceId
+        assertTrue(result.get(0).stream().allMatch(travel -> travel.getTravelRecurrenceModel().getId().equals(1)));
+        assertTrue(result.get(1).stream().allMatch(travel -> travel.getTravelRecurrenceModel().getId().equals(2)));
     }
 }
