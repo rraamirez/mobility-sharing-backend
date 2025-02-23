@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: mobility-sharing
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_DRIVER_CLASS}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  security:
+    user:
+      name: ${SPRING_SECURITY_USER_NAME}
+      password: ${SPRING_SECURITY_USER_PASSWORD}
+
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+      expiration: ${JWT_EXPIRATION}
+      refresh-token:
+        expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
+
+management:
+  server:
+    port: 8081
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include:
+            - db
+  endpoints:
+    web:
+      exposure:
+        include: health
+  health:
+    defaults:
+      enabled: true
+    mail:
+      enabled: false
+    ping:
+      enabled: true
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+    diskspace:
+      enabled: true
+
+springdoc:
+  swagger-ui:
+    path: ${SWAGGER_UI_PATH}
