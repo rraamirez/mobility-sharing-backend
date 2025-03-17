@@ -28,5 +28,5 @@ public class DatabaseInfoContributor implements InfoContributor {
         String databaseName = jdbcTemplate.queryForObject("SELECT DATABASE()", String.class);
         builder.withDetail("databaseName", databaseName);
     }
-    //http://localhost:8080/actuator/info (see bd info)
+    //http://localhost:9090/actuator/info (see bd info)
 }
