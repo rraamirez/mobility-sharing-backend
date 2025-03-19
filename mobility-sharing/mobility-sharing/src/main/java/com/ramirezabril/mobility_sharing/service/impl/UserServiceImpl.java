@@ -38,25 +38,38 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @Override
     public Optional<UserModel> updateUser(UserModel user, String token) {
         String username = jwtService.extractUsername(token);
-        Optional<UserModel> loggedUserOpt = userRepository.findByUsername(username).map(UserConverter::toUserModel);
+        Optional<UserModel> loggedUserOpt = userRepository.findByUsername(username)
+                .map(UserConverter::toUserModel);
 
-        if (loggedUserOpt.isPresent()) {
-            UserModel loggedUser = loggedUserOpt.get();
-
-            //todo do better role management
-            if (loggedUser.getId().equals(user.getId()) || isAdmin(loggedUser)) {
-                user.setId(loggedUser.getId());
-                User updatedEntity = userRepository.save(UserConverter.toUserEntity(user));
-                return Optional.of(UserConverter.toUserModel(updatedEntity));
-            } else {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only update your own profile");
-            }
-        } else {
+        if (!loggedUserOpt.isPresent()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found or unauthorized");
         }
+
+        UserModel loggedUser = loggedUserOpt.get();
+
+        if (!isUserAuthorizedToUpdate(loggedUser, user)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only update your own profile");
+        }
+
+        updateUserFields(user, loggedUser);
+
+        User updatedEntity = userRepository.save(UserConverter.toUserEntity(loggedUser));
+
+        return Optional.of(UserConverter.toUserModel(updatedEntity));
+    }
+
+    private boolean isUserAuthorizedToUpdate(UserModel loggedUser, UserModel user) {
+        return loggedUser.getId().equals(user.getId()) || isAdmin(loggedUser);
+    }
+
+    private void updateUserFields(UserModel user, UserModel loggedUser) {
+        if (user.getUsername() != null && !user.getUsername().isEmpty()) {
+            loggedUser.setUsername(user.getUsername());
+        }
+        loggedUser.setEmail(user.getEmail());
+        loggedUser.setName(user.getName());
     }
 
 
