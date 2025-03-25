@@ -18,4 +18,16 @@ public interface TravelRepository extends JpaRepository<Travel, Serializable> {
 
     @Query(value = "SELECT * FROM travel t WHERE t.travel_recurrence_id IS NOT NULL ORDER BY t.travel_recurrence_id", nativeQuery = true)
     List<Travel> getRecurringTravels();
+
+    @Query(value = """
+                SELECT t.* FROM travel t
+                JOIN user_travel ut ON t.id = ut.travel_id
+                WHERE ut.user_id = ?1
+                AND NOT EXISTS (
+                    SELECT 1 FROM rating r WHERE r.travel_id = t.id AND r.rating_user_id = ?1
+                )
+            """, nativeQuery = true)
+    List<Travel> findUnratedTravelsByUserId(int userId);
+ 
+
 }
