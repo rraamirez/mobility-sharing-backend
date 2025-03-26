@@ -104,4 +104,9 @@ public class TravelServiceImpl implements TravelService {
         return travelRepository.findByOriginAndDestination(origin, destination).stream()
                 .map(TravelConverter::toTravelModel).toList();
     }
+
+    @Override
+    public List<TravelModel> getUnratedTravelsByUser(Integer userId) {
+        return travelRepository.findUnratedTravelsByUserId(userId).stream().map(TravelConverter::toTravelModel).toList();
+    }
 }

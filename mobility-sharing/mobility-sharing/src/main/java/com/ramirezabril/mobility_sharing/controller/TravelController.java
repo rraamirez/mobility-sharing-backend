@@ -116,4 +116,9 @@ public class TravelController {
     public ResponseEntity<List<TravelModel>> getTravelsByOriginAndDestination(@RequestParam String origin, @RequestParam String destination, @RequestHeader("Authorization") String authHeader) {
         return ResponseEntity.ok().body(travelService.getTravelsByOriginAndDestination(origin, destination));
     }
+
+    @GetMapping("/unratedTravels/{userId}")
+    public ResponseEntity<List<TravelModel>> getUnratedTravels(@PathVariable Integer userId, @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok().body(travelService.getUnratedTravelsByUser(userId));
+    }
 }

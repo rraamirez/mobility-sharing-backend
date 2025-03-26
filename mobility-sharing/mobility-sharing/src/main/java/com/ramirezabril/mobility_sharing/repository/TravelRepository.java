@@ -28,6 +28,4 @@ public interface TravelRepository extends JpaRepository<Travel, Serializable> {
                 )
             """, nativeQuery = true)
     List<Travel> findUnratedTravelsByUserId(int userId);
- 
-
 }
