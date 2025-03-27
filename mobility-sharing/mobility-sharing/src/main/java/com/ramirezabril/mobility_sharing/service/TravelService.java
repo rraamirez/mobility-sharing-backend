@@ -24,7 +24,7 @@ public interface TravelService {
 
     List<TravelModel> getTravelsByDriver(Integer driverId);
 
-    List<TravelModel> getTravelsByOriginAndDestination(String origin, String destination);
+    List<TravelModel> getTravelsByOriginAndDestination(String origin, String destination, UserModel userLogged);
 
     List<TravelModel> getUnratedTravelsByUser(Integer userId);
 }

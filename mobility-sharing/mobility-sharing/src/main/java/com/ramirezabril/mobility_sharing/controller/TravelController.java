@@ -112,9 +112,18 @@ public class TravelController {
         return ResponseEntity.ok().body(travelService.getTravelsByDriver(driverId));
     }
 
-    @GetMapping("/origin-destination")
+    @GetMapping("/origin-destination") //it will return only whose driver is not the one that is finding a trip
     public ResponseEntity<List<TravelModel>> getTravelsByOriginAndDestination(@RequestParam String origin, @RequestParam String destination, @RequestHeader("Authorization") String authHeader) {
-        return ResponseEntity.ok().body(travelService.getTravelsByOriginAndDestination(origin, destination));
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = tokenUtil.extractToken(authHeader);
+        UserModel userLogged = userService.getUserByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+
+        return ResponseEntity.ok().body(travelService.getTravelsByOriginAndDestination(origin, destination, userLogged));
     }
 
     @GetMapping("/unratedTravels/{userId}")

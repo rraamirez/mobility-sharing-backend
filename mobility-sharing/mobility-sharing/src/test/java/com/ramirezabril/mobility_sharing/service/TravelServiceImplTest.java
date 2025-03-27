@@ -135,13 +135,15 @@ class TravelServiceImplTest {
         String origin = "City A";
         String destination = "City B";
         TravelModel travelModel = new TravelModel();
-        when(travelRepository.findByOriginAndDestination(origin, destination)).thenReturn(List.of(TravelConverter.toTravelEntity(travelModel)));
+        UserModel userModel = new UserModel();
+        userModel.setId(1);
+        when(travelRepository.findByOriginAndDestination(origin, destination, userModel.getId())).thenReturn(List.of(TravelConverter.toTravelEntity(travelModel)));
 
-        List<TravelModel> result = travelService.getTravelsByOriginAndDestination(origin, destination);
+        List<TravelModel> result = travelService.getTravelsByOriginAndDestination(origin, destination, userModel);
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(travelRepository, times(1)).findByOriginAndDestination(origin, destination);
+        verify(travelRepository, times(1)).findByOriginAndDestination(origin, destination, userModel.getId());
     }
 
     @Test
