@@ -20,8 +20,17 @@ public class UserTravelServiceImpl implements UserTravelService {
 
     @Override
     public Optional<UserTravelModel> addUserTravel(UserTravelModel userTravelModel) {
-        UserTravel savedEntity = userTravelRepository.save(UserTravelConverter.toUserTravelEntity(userTravelModel));
-        return Optional.of(UserTravelConverter.toUserTravelModel(savedEntity));
+        var userId = userTravelModel.getUser().getId();
+        var travelId = userTravelModel.getTravel().getId();
+        var userNotEnrolled = userTravelRepository
+                .findUserAndTravel(userId, travelId).isEmpty();
+
+        if (userNotEnrolled) {
+            UserTravel savedEntity = userTravelRepository.save(UserTravelConverter.toUserTravelEntity(userTravelModel));
+            return Optional.of(UserTravelConverter.toUserTravelModel(savedEntity));
+        } else {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User is already enrolled in this travel");
+        }
     }
 
 

@@ -29,7 +29,7 @@ public class UserTravel {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status = Status.PENDING;
+    private Status status = Status.pending;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

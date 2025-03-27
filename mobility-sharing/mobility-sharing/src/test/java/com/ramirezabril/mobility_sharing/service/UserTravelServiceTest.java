@@ -56,14 +56,14 @@ class UserTravelServiceTest {
         userTravelModel.setId(1);
         userTravelModel.setUser(userModel);
         userTravelModel.setTravel(travelModel);
-        userTravelModel.setStatus(Status.PENDING);
+        userTravelModel.setStatus(Status.pending);
         userTravelModel.setCreatedAt(LocalDateTime.now());
 
         userTravelEntity = new UserTravel();
         userTravelEntity.setId(1);
         userTravelEntity.setUser(UserConverter.toUserEntity(userModel));
         userTravelEntity.setTravel(TravelConverter.toTravelEntity(travelModel));
-        userTravelEntity.setStatus(Status.PENDING);
+        userTravelEntity.setStatus(Status.pending);
         userTravelEntity.setCreatedAt(LocalDateTime.now());
     }
 
