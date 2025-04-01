@@ -100,8 +100,18 @@ public class TravelServiceImpl implements TravelService {
     }
 
     @Override
-    public List<TravelModel> getTravelsByOriginAndDestination(String origin, String destination) {
-        return travelRepository.findByOriginAndDestination(origin, destination).stream()
+    public List<TravelModel> getEnrolledTravelsByUser(Integer userId) {
+        return travelRepository.findEnrolledTravelsByUserId(userId).stream().map(TravelConverter::toTravelModel).toList();
+    }
+
+    @Override
+    public List<TravelModel> getTravelsByOriginAndDestination(String origin, String destination, UserModel userLogged) {
+        return travelRepository.findByOriginAndDestination(origin, destination, userLogged.getId()).stream()
                 .map(TravelConverter::toTravelModel).toList();
+    }
+
+    @Override
+    public List<TravelModel> getUnratedTravelsByUser(Integer userId) {
+        return travelRepository.findUnratedTravelsByUserId(userId).stream().map(TravelConverter::toTravelModel).toList();
     }
 }

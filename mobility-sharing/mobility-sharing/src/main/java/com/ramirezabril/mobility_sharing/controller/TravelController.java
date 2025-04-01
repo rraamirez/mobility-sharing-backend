@@ -112,8 +112,32 @@ public class TravelController {
         return ResponseEntity.ok().body(travelService.getTravelsByDriver(driverId));
     }
 
+    @GetMapping("/enrolled/{userId}")
+    public ResponseEntity<List<TravelModel>> getEnrolledTravelsByUser(@PathVariable Integer userId, @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok().body(travelService.getEnrolledTravelsByUser(userId));
+    }
+
     @GetMapping("/origin-destination")
-    public ResponseEntity<List<TravelModel>> getTravelsByOriginAndDestination(@RequestParam String origin, @RequestParam String destination, @RequestHeader("Authorization") String authHeader) {
-        return ResponseEntity.ok().body(travelService.getTravelsByOriginAndDestination(origin, destination));
+    public ResponseEntity<List<TravelModel>> getTravelsByOriginAndDestination(
+            @RequestParam String origin,
+            @RequestParam(required = false) String destination,
+            @RequestHeader("Authorization") String authHeader) {
+
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = tokenUtil.extractToken(authHeader);
+        UserModel userLogged = userService.getUserByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        List<TravelModel> travels = travelService.getTravelsByOriginAndDestination(origin, destination, userLogged);
+        return ResponseEntity.ok().body(travels);
+    }
+
+
+    @GetMapping("/unratedTravels/{userId}")
+    public ResponseEntity<List<TravelModel>> getUnratedTravels(@PathVariable Integer userId, @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok().body(travelService.getUnratedTravelsByUser(userId));
     }
 }

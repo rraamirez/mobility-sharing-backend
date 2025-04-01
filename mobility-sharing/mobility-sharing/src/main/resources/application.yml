@@ -28,7 +28,7 @@ application:
 
 management:
   server:
-    port: 8081
+    port: 9090
   endpoint:
     health:
       probes:

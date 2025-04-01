@@ -53,7 +53,7 @@ public class UserTravelController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/")
+    @PostMapping("/") //todo pending by default not sent by frontend and avoid booking twice (must be tested)
     public ResponseEntity<UserTravelModel> createUserTravel(
             @RequestBody UserTravelModel userTravelModel,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
