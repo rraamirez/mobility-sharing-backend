@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 public interface TravelRepository extends JpaRepository<Travel, Serializable> {
-    @Query(value = "SELECT * FROM travel t WHERE driver_id = ?1", nativeQuery = true)
+    @Query(value = "SELECT * FROM travel t WHERE driver_id = ?1 ORDER BY t.date DESC", nativeQuery = true)
     List<Travel> findByDriverId(int driverId);
 
 
@@ -26,11 +26,12 @@ public interface TravelRepository extends JpaRepository<Travel, Serializable> {
 
     //This select is much more permissive than the one in the behind, ensuring better
     // experience while looking for travels (uppercase, uncompleted destinations etc) Destination is not mandatory
-    @Query(value = "SELECT * FROM travel t " +
+    @Query(value = "SELECT DISTINCT t.* FROM travel t " +
             "WHERE LOWER(t.origin) LIKE LOWER(CONCAT('%', :origin, '%')) " +
             "AND (:destination IS NULL OR LOWER(t.destination) LIKE LOWER(CONCAT('%', :destination, '%'))) " +
             "AND t.driver_id != :userId " +
-            "AND t.date >= CURDATE()",
+            "AND t.date >= CURDATE() " +
+            "AND NOT EXISTS (SELECT 1 FROM user_travel ut2 WHERE ut2.travel_id = t.id AND ut2.user_id = :userId)",
             nativeQuery = true)
     List<Travel> findByOriginAndDestination(@Param("origin") String origin,
                                             @Param("destination") String destination,

@@ -8,7 +8,10 @@ import com.ramirezabril.mobility_sharing.model.TravelModel;
 import com.ramirezabril.mobility_sharing.model.UserModel;
 import com.ramirezabril.mobility_sharing.repository.TravelRecurrenceRepository;
 import com.ramirezabril.mobility_sharing.repository.TravelRepository;
+import com.ramirezabril.mobility_sharing.repository.UserTravelRepository;
 import com.ramirezabril.mobility_sharing.service.TravelService;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +27,9 @@ public class TravelServiceImpl implements TravelService {
 
     @Autowired
     private TravelRecurrenceRepository travelRecurrenceRepository;
+
+    @Autowired
+    private UserTravelRepository userTravelRepository;
 
     @Override
     public Optional<TravelModel> getTravelById(Integer id) {
@@ -90,9 +96,16 @@ public class TravelServiceImpl implements TravelService {
 
 
     @Override
+    @Transactional
     public void deleteTravel(Integer id) {
-        travelRepository.deleteById(id);
+        if (travelRepository.existsById(id)) {
+            userTravelRepository.deleteByTravelId(id); //if travel is deleted, all users enrolled to this travel must be removed (the register)
+            travelRepository.deleteById(id);
+        } else {
+            throw new EntityNotFoundException("Travel with ID " + id + " not found");
+        }
     }
+
 
     @Override
     public List<TravelModel> getTravelsByDriver(Integer driverId) {
