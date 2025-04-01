@@ -10,6 +10,7 @@ import com.ramirezabril.mobility_sharing.repository.TravelRecurrenceRepository;
 import com.ramirezabril.mobility_sharing.repository.TravelRepository;
 import com.ramirezabril.mobility_sharing.repository.UserTravelRepository;
 import com.ramirezabril.mobility_sharing.service.TravelService;
+import com.ramirezabril.mobility_sharing.util.TravelStatus;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,7 @@ public class TravelServiceImpl implements TravelService {
     @Override
     public TravelModel createTravel(TravelModel travelModel, UserModel driver) {
         travelModel.setDriver(driver);
+        travelModel.setStatus(TravelStatus.ACTIVE);
         var savedTravel = travelRepository.save(TravelConverter.toTravelEntity(travelModel));
         return TravelConverter.toTravelModel(savedTravel);
     }
@@ -54,6 +56,7 @@ public class TravelServiceImpl implements TravelService {
 
         travelModels.forEach(travelModel -> {
             travelModel.setDriver(driver);
+            travelModel.setStatus(TravelStatus.ACTIVE);
             travelModel.setTravelRecurrenceModel(TravelRecurrenceConverter.entityToModel(travelRecurrence));
         });
 

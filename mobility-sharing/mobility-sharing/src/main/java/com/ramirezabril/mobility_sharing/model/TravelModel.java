@@ -1,5 +1,6 @@
 package com.ramirezabril.mobility_sharing.model;
 
+import com.ramirezabril.mobility_sharing.util.TravelStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,4 +22,9 @@ public class TravelModel {
     private Integer price;
     private LocalDateTime createdAt;
     private TravelRecurrenceModel travelRecurrenceModel;
+    private Double latitudeOrigin;
+    private Double longitudeOrigin;
+    private Double latitudeDestination;
+    private Double longitudeDestination;
+    private TravelStatus status;
 }

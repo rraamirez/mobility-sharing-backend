@@ -7,6 +7,7 @@ import com.ramirezabril.mobility_sharing.model.TravelRecurrenceModel;
 import com.ramirezabril.mobility_sharing.model.UserModel;
 import com.ramirezabril.mobility_sharing.repository.TravelRecurrenceRepository;
 import com.ramirezabril.mobility_sharing.repository.TravelRepository;
+import com.ramirezabril.mobility_sharing.repository.UserTravelRepository;
 import com.ramirezabril.mobility_sharing.service.impl.TravelServiceImpl;
 import com.ramirezabril.mobility_sharing.util.TokenUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +26,9 @@ class TravelServiceImplTest {
 
     @Mock
     private TravelRepository travelRepository;
+
+    @Mock
+    private UserTravelRepository userTravelRepository;
 
     @Mock
     private TravelRecurrenceRepository travelRecurrenceRepository;
@@ -111,6 +115,8 @@ class TravelServiceImplTest {
     void testDeleteTravel() {
         Integer travelId = 1;
         doNothing().when(travelRepository).deleteById(travelId);
+        doNothing().when(userTravelRepository).deleteById(any());
+        when(travelRepository.existsById(travelId)).thenReturn(true);
 
         travelService.deleteTravel(travelId);
 

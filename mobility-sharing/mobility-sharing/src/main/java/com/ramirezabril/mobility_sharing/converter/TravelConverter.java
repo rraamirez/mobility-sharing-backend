@@ -5,6 +5,9 @@ import com.ramirezabril.mobility_sharing.model.TravelModel;
 
 public class TravelConverter {
 
+    private TravelConverter() {
+    }
+
     public static TravelModel toTravelModel(Travel travel) {
         if (travel == null) return null;
 
@@ -18,7 +21,12 @@ public class TravelConverter {
                 travel.getPrice(),
                 travel.getCreatedAt(),
                 (travel.getTravelRecurrence() != null) ?
-                        TravelRecurrenceConverter.entityToModel(travel.getTravelRecurrence()) : null
+                        TravelRecurrenceConverter.entityToModel(travel.getTravelRecurrence()) : null,
+                travel.getLatitudeOrigin() != null ? travel.getLatitudeOrigin() : null,
+                travel.getLongitudeOrigin() != null ? travel.getLongitudeOrigin() : null,
+                travel.getLatitudeDestination() != null ? travel.getLatitudeDestination() : null,
+                travel.getLongitudeDestination() != null ? travel.getLongitudeDestination() : null,
+                travel.getStatus()
         );
     }
 
@@ -39,6 +47,21 @@ public class TravelConverter {
                         TravelRecurrenceConverter.modelToEntity(travelModel.getTravelRecurrenceModel()) : null // Maneja null
         );
 
+        if (travelModel.getLatitudeOrigin() != null) {
+            travel.setLatitudeOrigin(travelModel.getLatitudeOrigin());
+        }
+        if (travelModel.getLongitudeOrigin() != null) {
+            travel.setLongitudeOrigin(travelModel.getLongitudeOrigin());
+        }
+        if (travelModel.getLatitudeDestination() != null) {
+            travel.setLatitudeDestination(travelModel.getLatitudeDestination());
+        }
+        if (travelModel.getLongitudeDestination() != null) {
+            travel.setLongitudeDestination(travelModel.getLongitudeDestination());
+        }
+        travel.setStatus(travelModel.getStatus());
         return travel;
     }
 }
+
+

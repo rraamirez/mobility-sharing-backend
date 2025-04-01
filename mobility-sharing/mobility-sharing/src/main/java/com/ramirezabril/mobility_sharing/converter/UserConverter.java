@@ -10,7 +10,7 @@ public class UserConverter {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getPassword(),
+                null,
                 user.getUsername(),
                 user.getRupeeWallet(),
                 user.getCreatedAt(),
