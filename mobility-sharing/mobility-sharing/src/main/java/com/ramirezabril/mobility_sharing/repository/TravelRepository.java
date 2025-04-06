@@ -31,6 +31,7 @@ public interface TravelRepository extends JpaRepository<Travel, Serializable> {
             "AND (:destination IS NULL OR LOWER(t.destination) LIKE LOWER(CONCAT('%', :destination, '%'))) " +
             "AND t.driver_id != :userId " +
             "AND t.date >= CURDATE() " +
+            "AND t.status = 'ACTIVE' " +
             "AND NOT EXISTS (SELECT 1 FROM user_travel ut2 WHERE ut2.travel_id = t.id AND ut2.user_id = :userId)",
             nativeQuery = true)
     List<Travel> findByOriginAndDestination(@Param("origin") String origin,
@@ -45,6 +46,7 @@ public interface TravelRepository extends JpaRepository<Travel, Serializable> {
                 SELECT DISTINCT t.* FROM travel t
                 JOIN user_travel ut ON t.id = ut.travel_id
                 WHERE ut.user_id = ?1
+                AND t.status != 'CANCELED'
                 AND NOT EXISTS (
                     SELECT 1 FROM rating r WHERE r.travel_id = t.id AND r.rating_user_id = ?1
                 )

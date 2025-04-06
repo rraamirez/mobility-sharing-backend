@@ -130,4 +130,28 @@ public class TravelServiceImpl implements TravelService {
     public List<TravelModel> getUnratedTravelsByUser(Integer userId) {
         return travelRepository.findUnratedTravelsByUserId(userId).stream().map(TravelConverter::toTravelModel).toList();
     }
+
+    public Optional<TravelModel> updateTravelStatus(Integer id, Integer userId, TravelStatus status, String errorMessage) {
+        var travel = travelRepository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException("Travel with ID " + id + " not found"));
+
+        if (!travel.getDriver().getId().equals(userId)) {
+            throw new RuntimeException(errorMessage);
+        }
+
+        travel.setStatus(status);
+        var travelToReturn = travelRepository.save(travel);
+        return Optional.of(TravelConverter.toTravelModel(travelToReturn));
+    }
+
+    @Override
+    public Optional<TravelModel> cancelTravel(Integer id, Integer userId) {
+        return updateTravelStatus(id, userId, TravelStatus.CANCELED, "Can't cancel travel, users do not match");
+    }
+
+    @Override
+    public Optional<TravelModel> completeTravel(Integer id, Integer userId) {
+        return updateTravelStatus(id, userId, TravelStatus.COMPLETED, "Can't complete travel, users do not match");
+    }
+
 }

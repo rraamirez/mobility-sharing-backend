@@ -1,7 +1,9 @@
 package com.ramirezabril.mobility_sharing.service;
 
 import com.ramirezabril.mobility_sharing.converter.TravelConverter;
+import com.ramirezabril.mobility_sharing.entity.Travel;
 import com.ramirezabril.mobility_sharing.entity.TravelRecurrence;
+import com.ramirezabril.mobility_sharing.entity.User;
 import com.ramirezabril.mobility_sharing.model.TravelModel;
 import com.ramirezabril.mobility_sharing.model.TravelRecurrenceModel;
 import com.ramirezabril.mobility_sharing.model.UserModel;
@@ -10,6 +12,8 @@ import com.ramirezabril.mobility_sharing.repository.TravelRepository;
 import com.ramirezabril.mobility_sharing.repository.UserTravelRepository;
 import com.ramirezabril.mobility_sharing.service.impl.TravelServiceImpl;
 import com.ramirezabril.mobility_sharing.util.TokenUtil;
+import com.ramirezabril.mobility_sharing.util.TravelStatus;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -209,4 +213,91 @@ class TravelServiceImplTest {
         assertTrue(result.get(0).stream().allMatch(travel -> travel.getTravelRecurrenceModel().getId().equals(1)));
         assertTrue(result.get(1).stream().allMatch(travel -> travel.getTravelRecurrenceModel().getId().equals(2)));
     }
+
+    @Test
+    void testCancelTravel_Success() {
+        Integer travelId = 1;
+        Integer userId = 1;
+        Travel travel = new Travel();
+        travel.setDriver(new User());
+        travel.getDriver().setId(userId);
+        travel.setStatus(TravelStatus.ACTIVE);
+
+        when(travelRepository.findById(travelId)).thenReturn(Optional.of(travel));
+        when(travelRepository.save(any())).thenReturn(travel);
+
+        Optional<TravelModel> result = travelService.cancelTravel(travelId, userId);
+
+        assertTrue(result.isPresent());
+        assertEquals(TravelStatus.CANCELED, result.get().getStatus());
+        verify(travelRepository, times(1)).findById(travelId);
+        verify(travelRepository, times(1)).save(travel);
+    }
+
+    @Test
+    void testCancelTravel_NotFound() {
+        Integer travelId = 1;
+        Integer userId = 1;
+
+        when(travelRepository.findById(travelId)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> travelService.cancelTravel(travelId, userId));
+    }
+
+    @Test
+    void testCancelTravel_UserMismatch() {
+        Integer travelId = 1;
+        Integer userId = 1;
+        Travel travel = new Travel();
+        travel.setDriver(new User());
+        travel.getDriver().setId(2); // Mismatched userId
+
+        when(travelRepository.findById(travelId)).thenReturn(Optional.of(travel));
+
+        assertThrows(RuntimeException.class, () -> travelService.cancelTravel(travelId, userId));
+    }
+
+    @Test
+    void testCompleteTravel_Success() {
+        Integer travelId = 1;
+        Integer userId = 1;
+        Travel travel = new Travel();
+        travel.setDriver(new User());
+        travel.getDriver().setId(userId);
+        travel.setStatus(TravelStatus.ACTIVE);
+
+        when(travelRepository.findById(travelId)).thenReturn(Optional.of(travel));
+        when(travelRepository.save(any())).thenReturn(travel);
+
+        Optional<TravelModel> result = travelService.completeTravel(travelId, userId);
+
+        assertTrue(result.isPresent());
+        assertEquals(TravelStatus.COMPLETED, result.get().getStatus());
+        verify(travelRepository, times(1)).findById(travelId);
+        verify(travelRepository, times(1)).save(travel);
+    }
+
+    @Test
+    void testCompleteTravel_NotFound() {
+        Integer travelId = 1;
+        Integer userId = 1;
+
+        when(travelRepository.findById(travelId)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> travelService.completeTravel(travelId, userId));
+    }
+
+    @Test
+    void testCompleteTravel_UserMismatch() {
+        Integer travelId = 1;
+        Integer userId = 1;
+        Travel travel = new Travel();
+        travel.setDriver(new User());
+        travel.getDriver().setId(2); // Mismatched userId
+
+        when(travelRepository.findById(travelId)).thenReturn(Optional.of(travel));
+
+        assertThrows(RuntimeException.class, () -> travelService.completeTravel(travelId, userId));
+    }
+
 }

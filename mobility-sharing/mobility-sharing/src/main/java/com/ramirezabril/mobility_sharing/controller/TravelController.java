@@ -103,8 +103,35 @@ public class TravelController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTravel(@PathVariable Integer id, @RequestHeader("Authorization") String authHeader) {
-        travelService.deleteTravel(id);
+        //travelService.deleteTravel(id);
+        //this method should only be performed by admins panel users, user
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/cancel-travel/{id}")
+    public ResponseEntity<TravelModel> cancelTravel(@PathVariable Integer id, @RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = tokenUtil.extractToken(authHeader);
+        UserModel userLogged = userService.getUserByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        return ResponseEntity.ok(travelService.cancelTravel(id, userLogged.getId()).get());
+    }
+
+    @PutMapping("/complete-travel/{id}")
+    public ResponseEntity<TravelModel> completeTravel(@PathVariable Integer id, @RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = tokenUtil.extractToken(authHeader);
+        UserModel userLogged = userService.getUserByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        return ResponseEntity.ok(travelService.completeTravel(id, userLogged.getId()).get());
     }
 
     @GetMapping("/driver/{driverId}")
