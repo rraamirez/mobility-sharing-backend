@@ -16,9 +16,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("travelService")
@@ -121,9 +119,33 @@ public class TravelServiceImpl implements TravelService {
     }
 
     @Override
-    public List<TravelModel> getTravelsByOriginAndDestination(String origin, String destination, UserModel userLogged) {
-        return travelRepository.findByOriginAndDestination(origin, destination, userLogged.getId()).stream()
-                .map(TravelConverter::toTravelModel).toList();
+    public List<List<TravelModel>> getTravelsByOriginAndDestination(String origin, String destination, UserModel userLogged) {
+        List<TravelModel> flat = travelRepository
+                .findByOriginAndDestination(origin, destination, userLogged.getId())
+                .stream()
+                .map(TravelConverter::toTravelModel)
+                .toList();
+
+        Map<Integer, List<TravelModel>> mapped = new HashMap<>();
+        for (TravelModel travel : flat) {
+            Integer key = travel.getTravelRecurrenceModel() != null
+                    ? travel.getTravelRecurrenceModel().getId()
+                    : 0;
+            mapped
+                    .computeIfAbsent(key, k -> new ArrayList<>())
+                    .add(travel);
+        }
+
+        if (mapped.containsKey(0) && mapped.get(0).isEmpty()) {
+            mapped.remove(0);
+        }
+
+        List<List<TravelModel>> result = new ArrayList<>();
+        for (Integer key : mapped.keySet()) {
+            result.add(mapped.get(key));
+        }
+
+        return result;
     }
 
     @Override

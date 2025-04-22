@@ -149,7 +149,7 @@ class TravelServiceImplTest {
         userModel.setId(1);
         when(travelRepository.findByOriginAndDestination(origin, destination, userModel.getId())).thenReturn(List.of(TravelConverter.toTravelEntity(travelModel)));
 
-        List<TravelModel> result = travelService.getTravelsByOriginAndDestination(origin, destination, userModel);
+        var result = travelService.getTravelsByOriginAndDestination(origin, destination, userModel);
 
         assertNotNull(result);
         assertEquals(1, result.size());
