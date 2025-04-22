@@ -174,4 +174,43 @@ public class UserServiceTest {
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         assertEquals("User not found", exception.getReason());
     }
+
+    @Test
+    void whenUserNotFound_thenNoSaveCalled() {
+        when(userRepository.findById(42)).thenReturn(Optional.empty());
+
+        userService.computeRupeeWallet(50, 42);
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void whenAddingPositiveRupees_thenWalletIncreases() {
+        when(userRepository.findById(1)).thenReturn(Optional.of(user));
+
+        userService.computeRupeeWallet(50, 1);
+
+        assertEquals(150, user.getRupeeWallet());
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void whenSubtractingLessThanBalance_thenWalletDecreases() {
+        when(userRepository.findById(1)).thenReturn(Optional.of(user));
+
+        userService.computeRupeeWallet(-30, 1);
+
+        assertEquals(70, user.getRupeeWallet());
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void whenSubtractingMoreThanBalance_thenWalletFloorsToZero() {
+        when(userRepository.findById(1)).thenReturn(Optional.of(user));
+
+        userService.computeRupeeWallet(-200, 1);
+
+        assertEquals(0, user.getRupeeWallet());
+        verify(userRepository, times(1)).save(user);
+    }
 }

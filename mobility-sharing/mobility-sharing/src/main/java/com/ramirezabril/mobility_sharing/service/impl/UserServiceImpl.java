@@ -38,6 +38,20 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public void computeRupeeWallet(Integer rupees, Integer userId) {
+        var user = userRepository.findById(userId).orElse(null);
+        if (user != null) {
+            user.setId(userId);
+            var updateRupeeWallet = user.getRupeeWallet() + (rupees);
+            if (updateRupeeWallet < 0) {
+                updateRupeeWallet = 0;
+            }
+            user.setRupeeWallet(updateRupeeWallet);
+            userRepository.save(user);
+        }
+    }
+
     public Optional<UserModel> updateUser(UserModel user, String token) {
         String username = jwtService.extractUsername(token);
         Optional<UserModel> loggedUserOpt = userRepository.findByUsername(username)
