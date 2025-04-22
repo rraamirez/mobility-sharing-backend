@@ -136,11 +136,23 @@ public class TravelServiceImpl implements TravelService {
                     .add(travel);
         }
 
+        List<TravelModel> nonRecurringTravels = new ArrayList<>();
         if (mapped.containsKey(0) && mapped.get(0).isEmpty()) {
+            mapped.remove(0);
+        } else if (mapped.containsKey(0) && !mapped.get(0).isEmpty()) {
+            nonRecurringTravels = mapped.get(0);
             mapped.remove(0);
         }
 
         List<List<TravelModel>> result = new ArrayList<>();
+
+        if (!nonRecurringTravels.isEmpty()) {
+            for (TravelModel travel : nonRecurringTravels) {
+                result.add(List.of(travel));
+            }
+        }
+
+
         for (Integer key : mapped.keySet()) {
             result.add(mapped.get(key));
         }
