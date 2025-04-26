@@ -1,13 +1,21 @@
 package com.ramirezabril.mobility_sharing.service.impl;
 
+import com.ramirezabril.mobility_sharing.converter.TravelConverter;
+import com.ramirezabril.mobility_sharing.converter.UserConverter;
 import com.ramirezabril.mobility_sharing.converter.UserTravelConverter;
 import com.ramirezabril.mobility_sharing.entity.UserTravel;
 import com.ramirezabril.mobility_sharing.model.UserTravelModel;
+import com.ramirezabril.mobility_sharing.repository.TravelRepository;
+import com.ramirezabril.mobility_sharing.repository.UserRepository;
 import com.ramirezabril.mobility_sharing.repository.UserTravelRepository;
+import com.ramirezabril.mobility_sharing.service.UserService;
 import com.ramirezabril.mobility_sharing.service.UserTravelService;
+import com.ramirezabril.mobility_sharing.util.Status;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -18,18 +26,56 @@ public class UserTravelServiceImpl implements UserTravelService {
     @Autowired
     private UserTravelRepository userTravelRepository;
 
+    @Autowired
+    private TravelRepository travelRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private UserService userService;
+
     @Override
+    @Transactional
     public Optional<UserTravelModel> addUserTravel(UserTravelModel userTravelModel) {
         var userId = userTravelModel.getUser().getId();
         var travelId = userTravelModel.getTravel().getId();
+        var userToAdd = userRepository.findById(userId).map(UserConverter::toUserModel).orElse(null);
+        var joiningTravel = travelRepository.findById(travelId).map(TravelConverter::toTravelModel).orElse(null);
+
+        if (userToAdd == null || joiningTravel == null) {
+            throw new RuntimeException("There was an error matching user and joining travel");
+        }
+
+        if (userToAdd.getRupeeWallet() < joiningTravel.getPrice()) {
+            throw new RuntimeException("Joining user has not enough rupee wallet for joining travel");
+        }
+
         var userNotEnrolled = userTravelRepository
                 .findUserAndTravel(userId, travelId).isEmpty();
 
         if (userNotEnrolled) {
+            userTravelModel.setStatus(Status.pending);
             UserTravel savedEntity = userTravelRepository.save(UserTravelConverter.toUserTravelEntity(userTravelModel));
+            userService.computeRupeeWallet(-(savedEntity.getTravel().getPrice()), savedEntity.getUser().getId());
+
             return Optional.of(UserTravelConverter.toUserTravelModel(savedEntity));
         } else {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "User is already enrolled in this travel");
+        }
+    }
+
+    public Optional<UserTravelModel> updateUserTravelStatus(Integer userTravelId, Status status) {
+        var userTravel = userTravelRepository.findById(userTravelId)
+                .map(UserTravelConverter::toUserTravelModel)
+                .orElse(null);
+
+        if (userTravel == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User travel not found");
+        } else {
+            userTravel.setStatus(status);
+            var updatedEntity = userTravelRepository.save(UserTravelConverter.toUserTravelEntity(userTravel));
+            return Optional.of(UserTravelConverter.toUserTravelModel(updatedEntity));
         }
     }
 

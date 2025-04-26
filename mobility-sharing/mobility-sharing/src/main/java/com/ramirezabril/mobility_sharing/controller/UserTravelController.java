@@ -4,6 +4,9 @@ import com.ramirezabril.mobility_sharing.model.UserTravelModel;
 import com.ramirezabril.mobility_sharing.service.UserService;
 import com.ramirezabril.mobility_sharing.service.UserTravelService;
 import com.ramirezabril.mobility_sharing.util.TokenUtil;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,10 +14,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/user-travel")
 public class UserTravelController {
+
+    Logger logger = LoggerFactory.getLogger(UserTravelController.class);
 
     @Autowired
     private UserTravelService userTravelService;
@@ -66,8 +72,14 @@ public class UserTravelController {
         userService.getUserByToken(token)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
-        UserTravelModel createdUserTravel = userTravelService.addUserTravel(userTravelModel)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to create UserTravel"));
+        UserTravelModel createdUserTravel = null;
+
+        try {
+            createdUserTravel = userTravelService.addUserTravel(userTravelModel).get();
+        } catch (RuntimeException e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUserTravel);
     }
