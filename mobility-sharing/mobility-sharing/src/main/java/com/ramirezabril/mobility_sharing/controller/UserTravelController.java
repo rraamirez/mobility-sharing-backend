@@ -4,7 +4,6 @@ import com.ramirezabril.mobility_sharing.model.UserTravelModel;
 import com.ramirezabril.mobility_sharing.service.UserService;
 import com.ramirezabril.mobility_sharing.service.UserTravelService;
 import com.ramirezabril.mobility_sharing.util.TokenUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/user-travel")
@@ -100,6 +98,33 @@ public class UserTravelController {
         return userTravelService.updateUserTravel(userTravelModel)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/accept/{travelId}/{userId}")
+    public ResponseEntity<UserTravelModel> acceptUserTravel(@PathVariable Integer travelId, @PathVariable Integer userId, @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = tokenUtil.extractToken(authHeader);
+        userService.getUserByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+        var userTravel = userTravelService.acceptUserTravel(travelId, userId);
+        return userTravel.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+    }
+
+
+    @PutMapping("/reject/{travelId}/{userId}")
+    public ResponseEntity<UserTravelModel> rejectUserTravel(@PathVariable Integer travelId, @PathVariable Integer userId, @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = tokenUtil.extractToken(authHeader);
+        userService.getUserByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+        var userTravel = userTravelService.rejectUserTravel(travelId, userId);
+        return userTravel.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
     }
 
     @DeleteMapping("/{id}")

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserTravelRepository extends JpaRepository<UserTravel, Serializable> {
@@ -19,6 +20,11 @@ public interface UserTravelRepository extends JpaRepository<UserTravel, Serializ
                 SELECT * FROM user_travel where travel_id = ?2 AND user_id = ?1 
             """, nativeQuery = true)
     List<UserTravel> findUserAndTravel(int userId, int travelId);
+
+    @Query(value = """
+                SELECT * FROM user_travel where travel_id = ?2 AND user_id = ?1 
+            """, nativeQuery = true)
+    Optional<UserTravel> findConcreteUserTravel(int userId, int travelId);
 
     @Transactional
     @Query(value = "DELETE FROM user_travel WHERE travel_id = ?1", nativeQuery = true)

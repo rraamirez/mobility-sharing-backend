@@ -17,7 +17,7 @@ public interface TravelRepository extends JpaRepository<Travel, Serializable> {
 
     //distinct could be avoided addings constraint like this: ALTER TABLE user_travel ADD CONSTRAINT unique_user_travel UNIQUE (user_id, travel_id);
 
-    @Query(value = "SELECT DISTINCT t.* FROM travel t JOIN user_travel ut ON t.id = ut.travel_id WHERE ut.user_id = ?1 AND t.driver_id != ?1", nativeQuery = true)
+    @Query(value = "SELECT DISTINCT t.* FROM travel t JOIN user_travel ut ON t.id = ut.travel_id WHERE ut.user_id = ?1 AND t.driver_id != ?1 AND ut.status != 'canceled'", nativeQuery = true)
     List<Travel> findEnrolledTravelsByUserId(int userId);
 
 //    @Query(value = "SELECT * FROM travel t WHERE origin like %?1% AND destination like %?2% AND driver_id != ?3 AND t.date >= CURDATE() ", nativeQuery = true)

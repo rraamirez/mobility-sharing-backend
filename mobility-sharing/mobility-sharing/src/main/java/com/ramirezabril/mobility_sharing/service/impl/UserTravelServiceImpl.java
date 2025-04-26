@@ -11,7 +11,6 @@ import com.ramirezabril.mobility_sharing.repository.UserTravelRepository;
 import com.ramirezabril.mobility_sharing.service.UserService;
 import com.ramirezabril.mobility_sharing.service.UserTravelService;
 import com.ramirezabril.mobility_sharing.util.Status;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -88,6 +87,30 @@ public class UserTravelServiceImpl implements UserTravelService {
                     UserTravel updatedEntity = userTravelRepository.save(existingEntity);
                     return UserTravelConverter.toUserTravelModel(updatedEntity);
                 });
+    }
+
+    @Override
+    public Optional<UserTravelModel> rejectUserTravel(Integer travelId, Integer userId) {
+        var userTravel = userTravelRepository.findConcreteUserTravel(userId, travelId);
+        if (userTravel.isPresent()) {
+            var rejected = userTravel.get();
+            rejected.setStatus(Status.canceled);
+            var toReturn = userTravelRepository.save(rejected);
+            return Optional.of(UserTravelConverter.toUserTravelModel(toReturn));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<UserTravelModel> acceptUserTravel(Integer travelId, Integer userId) {
+        var userTravel = userTravelRepository.findConcreteUserTravel(userId, travelId);
+        if (userTravel.isPresent()) {
+            var acceptedTravel = userTravel.get();
+            acceptedTravel.setStatus(Status.confirmed);
+            var toReturn = userTravelRepository.save(acceptedTravel);
+            return Optional.of(UserTravelConverter.toUserTravelModel(toReturn));
+        }
+        return Optional.empty();
     }
 
 
