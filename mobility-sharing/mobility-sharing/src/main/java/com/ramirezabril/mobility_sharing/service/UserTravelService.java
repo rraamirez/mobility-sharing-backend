@@ -24,4 +24,6 @@ public interface UserTravelService {
 
     List<UserTravelModel> getUserTravelsByTravelId(int userId);
 
+    Optional<UserTravelModel> getUserTravelByUserIdAndTravelId(Integer userId, Integer travelId);
+
 }

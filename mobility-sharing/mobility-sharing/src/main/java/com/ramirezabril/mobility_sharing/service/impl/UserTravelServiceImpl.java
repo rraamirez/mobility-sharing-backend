@@ -14,6 +14,7 @@ import com.ramirezabril.mobility_sharing.util.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -34,8 +35,9 @@ public class UserTravelServiceImpl implements UserTravelService {
     @Autowired
     private UserService userService;
 
+    //todo research how to handle multiple transactional operations
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Optional<UserTravelModel> addUserTravel(UserTravelModel userTravelModel) {
         var userId = userTravelModel.getUser().getId();
         var travelId = userTravelModel.getTravel().getId();
@@ -144,5 +146,10 @@ public class UserTravelServiceImpl implements UserTravelService {
     @Override
     public List<UserTravelModel> getUserTravelsByTravelId(int userId) {
         return userTravelRepository.findByTravel_Id(userId).stream().map(UserTravelConverter::toUserTravelModel).toList();
+    }
+
+    @Override
+    public Optional<UserTravelModel> getUserTravelByUserIdAndTravelId(Integer userId, Integer travelId) {
+        return userTravelRepository.findConcreteUserTravel(userId, travelId).map(UserTravelConverter::toUserTravelModel);
     }
 }

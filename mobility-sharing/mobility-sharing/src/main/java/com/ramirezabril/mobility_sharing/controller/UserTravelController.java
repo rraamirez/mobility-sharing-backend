@@ -77,6 +77,9 @@ public class UserTravelController {
         } catch (RuntimeException e) {
             logger.error(e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUserTravel);
@@ -168,5 +171,20 @@ public class UserTravelController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
         return ResponseEntity.ok().body(userTravelService.getUserTravelsByTravelId(travelId));
+    }
+
+    @GetMapping("/{userId}/{travelId}")
+    public ResponseEntity<UserTravelModel> getUserTravelsByUserAndTravel(@PathVariable Integer userId, @PathVariable Integer travelId, @RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = tokenUtil.extractToken(authHeader);
+        userService.getUserByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        return userTravelService.getUserTravelByUserIdAndTravelId(userId, travelId)
+                .map(userTravel -> ResponseEntity.ok().body(userTravel))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
