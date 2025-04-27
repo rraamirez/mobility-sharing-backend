@@ -58,7 +58,7 @@ public class UserTravelServiceImpl implements UserTravelService {
         if (userNotEnrolled) {
             userTravelModel.setStatus(Status.pending);
             UserTravel savedEntity = userTravelRepository.save(UserTravelConverter.toUserTravelEntity(userTravelModel));
-            userService.computeRupeeWallet(-(savedEntity.getTravel().getPrice()), savedEntity.getUser().getId());
+            //userService.computeRupeeWallet(-(savedEntity.getTravel().getPrice()), savedEntity.getUser().getId());
 
             return Optional.of(UserTravelConverter.toUserTravelModel(savedEntity));
         } else {
@@ -92,9 +92,15 @@ public class UserTravelServiceImpl implements UserTravelService {
     }
 
     @Override
+    @Transactional
     public Optional<UserTravelModel> rejectUserTravel(Integer travelId, Integer userId) {
         var userTravel = userTravelRepository.findConcreteUserTravel(userId, travelId);
+
         if (userTravel.isPresent()) {
+            var userRejected = userTravel.get().getUser();
+            var rupeeWallet = userTravel.get().getTravel().getPrice();
+            userService.computeRupeeWallet(rupeeWallet, userRejected.getId());
+
             var rejected = userTravel.get();
             rejected.setStatus(Status.canceled);
             var toReturn = userTravelRepository.save(rejected);
@@ -104,9 +110,15 @@ public class UserTravelServiceImpl implements UserTravelService {
     }
 
     @Override
+    @Transactional
     public Optional<UserTravelModel> acceptUserTravel(Integer travelId, Integer userId) {
         var userTravel = userTravelRepository.findConcreteUserTravel(userId, travelId);
+
         if (userTravel.isPresent()) {
+            var driver = userTravel.get().getTravel().getDriver();
+            var rupeeComputation = userTravel.get().getTravel().getPrice();
+            userService.computeRupeeWallet(rupeeComputation, driver.getId());
+
             var acceptedTravel = userTravel.get();
             acceptedTravel.setStatus(Status.confirmed);
             var toReturn = userTravelRepository.save(acceptedTravel);
