@@ -123,6 +123,7 @@ public class UserTravelController {
                     .orElseGet(() -> ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
 
         } catch (ResponseStatusException ex) {
+            LoggerFactory.getLogger(UserTravelController.class).error(ex.getMessage());
             return ResponseEntity
                     .status(ex.getStatusCode())
                     .build();
@@ -149,6 +150,7 @@ public class UserTravelController {
                     .orElseGet(() -> ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
 
         } catch (ResponseStatusException ex) {
+            LoggerFactory.getLogger(UserTravelController.class).error(ex.getMessage());
             return ResponseEntity
                     .status(ex.getStatusCode())
                     .build();
