@@ -96,6 +96,10 @@ public class UserTravelServiceImpl implements UserTravelService {
     public Optional<UserTravelModel> rejectUserTravel(Integer travelId, Integer userId) {
         var userTravel = userTravelRepository.findConcreteUserTravel(userId, travelId);
 
+        if (userTravel.isPresent() && userTravel.get().getStatus().equals(Status.canceled)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User travel is already confirmed");
+        }
+
         if (userTravel.isPresent()) {
             var userRejected = userTravel.get().getUser();
             var rupeeWallet = userTravel.get().getTravel().getPrice();
@@ -113,6 +117,11 @@ public class UserTravelServiceImpl implements UserTravelService {
     @Transactional
     public Optional<UserTravelModel> acceptUserTravel(Integer travelId, Integer userId) {
         var userTravel = userTravelRepository.findConcreteUserTravel(userId, travelId);
+
+        if (userTravel.isPresent() && userTravel.get().getStatus().equals(Status.confirmed)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User travel is already confirmed");
+        }
+
 
         if (userTravel.isPresent()) {
             var driver = userTravel.get().getTravel().getDriver();
