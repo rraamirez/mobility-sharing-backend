@@ -31,7 +31,7 @@ public class AuthService {
                 .email(registerRequest.email())
                 .password(passwordEncoder.encode(registerRequest.password()))
                 .username(registerRequest.username())
-                .rupeeWallet(0)
+                .rupeeWallet(1000)
                 .role(new Role(registerRequest.roleId(), null))
                 .build();
 
