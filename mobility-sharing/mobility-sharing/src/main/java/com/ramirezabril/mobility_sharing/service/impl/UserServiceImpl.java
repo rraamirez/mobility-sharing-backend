@@ -8,6 +8,8 @@ import com.ramirezabril.mobility_sharing.repository.UserRepository;
 import com.ramirezabril.mobility_sharing.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -52,6 +54,8 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    //private final PasswordEncoder passwordEncoder;
+
     public Optional<UserModel> updateUser(UserModel user, String token) {
         String username = jwtService.extractUsername(token);
         Optional<UserModel> loggedUserOpt = userRepository.findByUsername(username)
@@ -84,6 +88,8 @@ public class UserServiceImpl implements UserService {
         }
         loggedUser.setEmail(user.getEmail());
         loggedUser.setName(user.getName());
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        loggedUser.setPassword(encoder.encode(user.getPassword()));
     }
 
 
