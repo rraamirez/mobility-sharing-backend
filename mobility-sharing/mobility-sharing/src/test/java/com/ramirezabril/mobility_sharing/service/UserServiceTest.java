@@ -94,7 +94,9 @@ public class UserServiceTest {
         String token = "valid_token";
         when(jwtService.extractUsername(token)).thenReturn("testuser");
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
-        when(userRepository.save(user)).thenReturn(user);
+        when(userRepository.save(any())).thenReturn(user);
+
+        userModel.setPassword("password");
 
         Optional<UserModel> result = userService.updateUser(userModel, token);
 
