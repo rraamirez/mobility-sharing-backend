@@ -14,7 +14,8 @@ public class UserConverter {
                 user.getUsername(),
                 user.getRupeeWallet(),
                 user.getCreatedAt(),
-                RoleConverter.toRoleModel(user.getRole())
+                RoleConverter.toRoleModel(user.getRole()),
+                user.getRating()
         );
     }
 
@@ -32,7 +33,8 @@ public class UserConverter {
         user.setRupeeWallet(userModel.getRupeeWallet());
         user.setCreatedAt(userModel.getCreatedAt());
         user.setRole(RoleConverter.toRoleEntity(userModel.getRole()));
-
+        user.setRating(userModel.getRating());
+        
         return user;
     }
 }

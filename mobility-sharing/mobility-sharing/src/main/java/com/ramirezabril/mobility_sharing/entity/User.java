@@ -42,6 +42,9 @@ public class User {
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
+    @Column(name = "rating", nullable = true)
+    private Integer rating;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
