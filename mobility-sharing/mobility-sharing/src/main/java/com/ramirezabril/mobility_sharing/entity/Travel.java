@@ -1,5 +1,6 @@
 package com.ramirezabril.mobility_sharing.entity;
 
+import com.ramirezabril.mobility_sharing.util.TravelStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -45,6 +46,22 @@ public class Travel {
     @ManyToOne
     @JoinColumn(name = "travel_recurrence_id")
     private TravelRecurrence travelRecurrence;
+
+    @Column(name = "latitude_origin", nullable = true)
+    private Double latitudeOrigin;
+
+    @Column(name = "longitude_origin", nullable = true)
+    private Double longitudeOrigin;
+
+    @Column(name = "latitude_destination", nullable = true)
+    private Double latitudeDestination;
+
+    @Column(name = "longitude_destination", nullable = true)
+    private Double longitudeDestination;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TravelStatus status = TravelStatus.ACTIVE;
 
     @PrePersist
     protected void onCreate() {

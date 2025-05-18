@@ -8,6 +8,8 @@ import com.ramirezabril.mobility_sharing.repository.UserRepository;
 import com.ramirezabril.mobility_sharing.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -37,6 +39,22 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
         }
     }
+
+    @Override
+    public void computeRupeeWallet(Integer rupees, Integer userId) {
+        var user = userRepository.findById(userId).orElse(null);
+        if (user != null) {
+            user.setId(userId);
+            var updateRupeeWallet = user.getRupeeWallet() + (rupees);
+            if (updateRupeeWallet < 0) {
+                updateRupeeWallet = 0;
+            }
+            user.setRupeeWallet(updateRupeeWallet);
+            userRepository.save(user);
+        }
+    }
+
+    //private final PasswordEncoder passwordEncoder;
 
     public Optional<UserModel> updateUser(UserModel user, String token) {
         String username = jwtService.extractUsername(token);
@@ -70,6 +88,8 @@ public class UserServiceImpl implements UserService {
         }
         loggedUser.setEmail(user.getEmail());
         loggedUser.setName(user.getName());
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        loggedUser.setPassword(encoder.encode(user.getPassword()));
     }
 
 

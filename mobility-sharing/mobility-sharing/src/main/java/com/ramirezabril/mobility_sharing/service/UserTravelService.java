@@ -10,6 +10,10 @@ public interface UserTravelService {
 
     Optional<UserTravelModel> updateUserTravel(UserTravelModel userTravelModel);
 
+    Optional<UserTravelModel> rejectUserTravel(Integer travelId, Integer userId);
+
+    Optional<UserTravelModel> acceptUserTravel(Integer travelId, Integer userId);
+
     void deleteUserTravel(UserTravelModel userTravelModel);
 
     List<UserTravelModel> getAllUserTravels();
@@ -19,5 +23,7 @@ public interface UserTravelService {
     List<UserTravelModel> getUserTravelsByUser(int userId);
 
     List<UserTravelModel> getUserTravelsByTravelId(int userId);
+
+    Optional<UserTravelModel> getUserTravelByUserIdAndTravelId(Integer userId, Integer travelId);
 
 }

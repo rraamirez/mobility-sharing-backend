@@ -26,7 +26,11 @@ public interface TravelService {
 
     List<TravelModel> getEnrolledTravelsByUser(Integer userId);
 
-    List<TravelModel> getTravelsByOriginAndDestination(String origin, String destination, UserModel userLogged);
+    List<List<TravelModel>> getTravelsByOriginAndDestination(String origin, String destination, UserModel userLogged);
 
     List<TravelModel> getUnratedTravelsByUser(Integer userId);
+
+    Optional<TravelModel> cancelTravel(Integer id, Integer userId);
+
+    Optional<TravelModel> completeTravel(Integer id, Integer userId);
 }

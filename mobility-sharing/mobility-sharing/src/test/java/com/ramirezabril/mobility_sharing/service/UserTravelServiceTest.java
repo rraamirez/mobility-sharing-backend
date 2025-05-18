@@ -7,7 +7,10 @@ import com.ramirezabril.mobility_sharing.entity.UserTravel;
 import com.ramirezabril.mobility_sharing.model.TravelModel;
 import com.ramirezabril.mobility_sharing.model.UserModel;
 import com.ramirezabril.mobility_sharing.model.UserTravelModel;
+import com.ramirezabril.mobility_sharing.repository.TravelRepository;
+import com.ramirezabril.mobility_sharing.repository.UserRepository;
 import com.ramirezabril.mobility_sharing.repository.UserTravelRepository;
+import com.ramirezabril.mobility_sharing.service.impl.UserServiceImpl;
 import com.ramirezabril.mobility_sharing.service.impl.UserTravelServiceImpl;
 import com.ramirezabril.mobility_sharing.util.Status;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,11 +35,18 @@ class UserTravelServiceTest {
     @Mock
     private UserTravelConverter userTravelConverter;
 
+    @Mock UserRepository userRepository;
+    @Mock TravelRepository travelRepository;
+
     @InjectMocks
     private UserTravelServiceImpl userTravelService;
 
+    @Mock
+    private UserServiceImpl userService;
+
     private UserTravelModel userTravelModel;
     private UserTravel userTravelEntity;
+    private UserTravel userTravelEntity2;
     private UserModel userModel;
     private TravelModel travelModel;
 
@@ -47,10 +57,12 @@ class UserTravelServiceTest {
         userModel = new UserModel();
         userModel.setId(1);
         userModel.setUsername("testuser");
+        userModel.setRupeeWallet(200);
 
         travelModel = new TravelModel();
         travelModel.setId(1);
         travelModel.setDestination("Destination");
+        travelModel.setPrice(100);
 
         userTravelModel = new UserTravelModel();
         userTravelModel.setId(1);
@@ -65,11 +77,22 @@ class UserTravelServiceTest {
         userTravelEntity.setTravel(TravelConverter.toTravelEntity(travelModel));
         userTravelEntity.setStatus(Status.pending);
         userTravelEntity.setCreatedAt(LocalDateTime.now());
+
+        userTravelEntity2 = new UserTravel();
+        userTravelEntity2.setId(2);
+        userTravelEntity2.setUser(UserConverter.toUserEntity(userModel));
+        userTravelEntity2.setTravel(TravelConverter.toTravelEntity(travelModel));
+        userTravelEntity2.setStatus(Status.pending);
+        userTravelEntity2.setCreatedAt(LocalDateTime.now());
     }
 
     @Test
     void testAddUserTravel() {
         when(userTravelRepository.save(any(UserTravel.class))).thenReturn(userTravelEntity);
+        when(userRepository.findById(anyInt())).thenReturn(Optional.of(UserConverter.toUserEntity(userModel)));
+        when(travelRepository.findById(anyInt())).thenReturn(Optional.of(TravelConverter.toTravelEntity(travelModel)));
+        doNothing().when(userService).computeRupeeWallet(anyInt(), anyInt());
+
 
         Optional<UserTravelModel> result = userTravelService.addUserTravel(userTravelModel);
 
