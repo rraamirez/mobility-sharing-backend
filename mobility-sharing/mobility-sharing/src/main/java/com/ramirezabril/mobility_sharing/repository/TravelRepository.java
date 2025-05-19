@@ -47,7 +47,7 @@ public interface TravelRepository extends JpaRepository<Travel, Serializable> {
                 JOIN user_travel ut ON t.id = ut.travel_id
                 WHERE ut.user_id = ?1
                 AND ut.status = 'confirmed'
-                AND t.status != 'CANCELED'
+                AND t.status = 'COMPLETED'
                 AND NOT EXISTS (
                     SELECT 1 FROM rating r WHERE r.travel_id = t.id AND r.rating_user_id = ?1
                 )
