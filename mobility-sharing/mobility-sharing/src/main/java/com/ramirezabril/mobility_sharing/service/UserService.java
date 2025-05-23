@@ -14,4 +14,6 @@ public interface UserService {
     Optional<UserModel> updateUser(UserModel user, String token);
 
     void deleteUser(Integer userId, String token);
+
+    void computeUserRatings();
 }

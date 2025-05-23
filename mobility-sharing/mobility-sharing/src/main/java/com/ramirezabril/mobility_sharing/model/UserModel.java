@@ -19,5 +19,5 @@ public class UserModel {
     private Integer rupeeWallet = 0;
     private LocalDateTime createdAt;
     private RoleModel role;
-
+    private Integer rating;
 }

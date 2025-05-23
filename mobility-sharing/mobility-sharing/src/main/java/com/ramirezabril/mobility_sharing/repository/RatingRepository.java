@@ -20,4 +20,6 @@ public interface RatingRepository extends JpaRepository<Rating, Serializable> {
     @Query(value = "SELECT * FROM rating WHERE travel_id = ?1", nativeQuery = true)
     List<Rating> findByTravel(int travelId);
 
+    @Query(value = "SELECT r.rating FROM rating r where r.rated_user_id = ?1", nativeQuery = true)
+    List<Integer> getRatingsByDriverId(int driverId);
 }

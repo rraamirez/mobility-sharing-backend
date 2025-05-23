@@ -4,6 +4,7 @@ import com.ramirezabril.mobility_sharing.auth.service.JwtService;
 import com.ramirezabril.mobility_sharing.converter.UserConverter;
 import com.ramirezabril.mobility_sharing.entity.User;
 import com.ramirezabril.mobility_sharing.model.UserModel;
+import com.ramirezabril.mobility_sharing.repository.RatingRepository;
 import com.ramirezabril.mobility_sharing.repository.UserRepository;
 import com.ramirezabril.mobility_sharing.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    RatingRepository ratingRepository;
 
     @Override
     public Optional<UserModel> getUserByToken(String token) {
@@ -114,6 +118,21 @@ public class UserServiceImpl implements UserService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
     }
+
+    @Override
+    public void computeUserRatings() {
+        var userIds = userRepository.getUserIds();
+        for (Integer userId : userIds) {
+            var ratings = ratingRepository.getRatingsByDriverId(userId);
+            if (!ratings.isEmpty()) {
+                int rate = ratings.stream().mapToInt(Integer::intValue).sum() / ratings.size();
+                if (rate >= 1 && rate <= 5) {
+                    userRepository.updateUserRating(userId, rate);
+                }
+            }
+        }
+    }
+
 
     private boolean isAdmin(UserModel user) {
         return "ADMIN".equals(user.getRole().getName());

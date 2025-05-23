@@ -141,7 +141,8 @@ public class TravelController {
 
     @GetMapping("/enrolled/{userId}")
     public ResponseEntity<List<TravelModel>> getEnrolledTravelsByUser(@PathVariable Integer userId, @RequestHeader("Authorization") String authHeader) {
-        return ResponseEntity.ok().body(travelService.getEnrolledTravelsByUser(userId));
+        var to_return = travelService.getEnrolledTravelsByUser(userId);
+        return ResponseEntity.ok().body(to_return);
     }
 
 //    @GetMapping("/origin-destination")
