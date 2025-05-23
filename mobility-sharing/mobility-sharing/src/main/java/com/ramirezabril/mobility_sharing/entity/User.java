@@ -45,6 +45,10 @@ public class User {
     @Column(name = "rating", nullable = true)
     private Integer rating;
 
+    @ManyToOne
+    @JoinColumn(name = "eco_rank_id", nullable = false)
+    private EcoRank ecoRank;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

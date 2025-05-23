@@ -8,6 +8,7 @@ import com.ramirezabril.mobility_sharing.auth.repository.TokenRepository;
 import com.ramirezabril.mobility_sharing.entity.Role;
 import com.ramirezabril.mobility_sharing.entity.User;
 import com.ramirezabril.mobility_sharing.repository.UserRepository;
+import com.ramirezabril.mobility_sharing.util.EcoRanksUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,7 +26,12 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
+    private final EcoRanksUtils ecoRanksUtils; //autowired with required args constructor
+    private static final int DEFAULT_RANK = 1;
+
+
     public TokenResponse register(RegisterRequest registerRequest) {
+        //add rating and eco rank? check if necessary
         var user = User.builder()
                 .name(registerRequest.name())
                 .email(registerRequest.email())
@@ -33,6 +39,7 @@ public class AuthService {
                 .username(registerRequest.username())
                 .rupeeWallet(1000)
                 .role(new Role(registerRequest.roleId(), null))
+                .ecoRank(ecoRanksUtils.getEcoRankById(DEFAULT_RANK))
                 .build();
 
         userRepository.save(user);

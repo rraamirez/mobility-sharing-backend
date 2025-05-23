@@ -6,17 +6,18 @@ import com.ramirezabril.mobility_sharing.model.UserModel;
 public class UserConverter {
 
     public static UserModel toUserModel(User user) {
-        return user == null ? null : new UserModel(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                null,
-                user.getUsername(),
-                user.getRupeeWallet(),
-                user.getCreatedAt(),
-                RoleConverter.toRoleModel(user.getRole()),
-                user.getRating()
-        );
+        return user == null ? null : UserModel.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .password(null) // Password is never exposed as returned data are always models
+                .username(user.getUsername())
+                .rupeeWallet(user.getRupeeWallet())
+                .createdAt(user.getCreatedAt())
+                .role(RoleConverter.toRoleModel(user.getRole()))
+                .rating(user.getRating())
+                .ecoRank(EcoRankConverter.toModel(user.getEcoRank()))
+                .build();
     }
 
     public static User toUserEntity(UserModel userModel) {
@@ -24,17 +25,17 @@ public class UserConverter {
             return null;
         }
 
-        User user = new User();
-        user.setId(userModel.getId());
-        user.setName(userModel.getName());
-        user.setEmail(userModel.getEmail());
-        user.setPassword(userModel.getPassword());
-        user.setUsername(userModel.getUsername());
-        user.setRupeeWallet(userModel.getRupeeWallet());
-        user.setCreatedAt(userModel.getCreatedAt());
-        user.setRole(RoleConverter.toRoleEntity(userModel.getRole()));
-        user.setRating(userModel.getRating());
-        
-        return user;
+        return User.builder()
+                .id(userModel.getId())
+                .name(userModel.getName())
+                .email(userModel.getEmail())
+                .password(userModel.getPassword())
+                .username(userModel.getUsername())
+                .rupeeWallet(userModel.getRupeeWallet())
+                .createdAt(userModel.getCreatedAt())
+                .role(RoleConverter.toRoleEntity(userModel.getRole()))
+                .rating(userModel.getRating())
+                .ecoRank(EcoRankConverter.toEntity(userModel.getEcoRank()))
+                .build();
     }
 }

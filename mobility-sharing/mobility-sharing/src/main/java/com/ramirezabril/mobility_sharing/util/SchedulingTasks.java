@@ -16,7 +16,8 @@ public class SchedulingTasks {
     @Autowired
     UserRepository userRepository;
 
-    @Scheduled(cron = "0 0 3 * * *")
+    //improve logic based on travels
+    @Scheduled(cron = "0 0 3 * * MON")
     public void updateUsersRupees() {
         List<Integer> userIds = userRepository.getUserIds();
         userIds.forEach(userId -> userService.updateRupeeWallet(100, userId));
@@ -27,5 +28,9 @@ public class SchedulingTasks {
         userService.computeUserRatings();
     }
 
-    //TODO: delete travels and user that are older than a week
+    //add ecoranks calculations once a week
+    @Scheduled(cron = "0 1 0 * * MON")
+    public void updateUsersEcoRanks() {
+        userService.computeEcoRanks();
+    }
 }

@@ -30,4 +30,7 @@ public interface UserTravelRepository extends JpaRepository<UserTravel, Serializ
     @Query(value = "DELETE FROM user_travel WHERE travel_id = ?1", nativeQuery = true)
     void deleteByTravelId(int travelId);
 
+    @Query(value = "SELECT COUNT(*) FROM user_travel WHERE user_id = ?1 AND status = 'confirmed'", nativeQuery = true)
+    Optional<Long> countConfirmedUserTravelsByUserId(int userId);
+
 }

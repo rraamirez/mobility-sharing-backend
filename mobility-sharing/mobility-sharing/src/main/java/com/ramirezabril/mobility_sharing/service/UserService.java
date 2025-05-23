@@ -16,4 +16,6 @@ public interface UserService {
     void deleteUser(Integer userId, String token);
 
     void computeUserRatings();
+
+    void computeEcoRanks();
 }

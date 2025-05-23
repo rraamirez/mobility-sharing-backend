@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TravelRepository extends JpaRepository<Travel, Serializable> {
@@ -53,4 +54,10 @@ public interface TravelRepository extends JpaRepository<Travel, Serializable> {
                 )
             """, nativeQuery = true)
     List<Travel> findUnratedTravelsByUserId(int userId);
+
+    @Query(value = "SELECT COUNT(*) FROM travel WHERE driver_id = ?1 AND status = 'COMPLETED'", nativeQuery = true)
+    Optional<Long> countCompletedTravelsByDriverId(int userId);
+
+    @Query(value = "SELECT COUNT(*) FROM travel WHERE driver_id = ?1 AND status = 'COMPLETED' AND travel_recurrence_id IS NOT NULL", nativeQuery = true)
+    Optional<Long> countCompletedRecurringTravelsByDriverId(int userId);
 }

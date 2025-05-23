@@ -5,7 +5,9 @@ import com.ramirezabril.mobility_sharing.converter.UserConverter;
 import com.ramirezabril.mobility_sharing.entity.User;
 import com.ramirezabril.mobility_sharing.model.UserModel;
 import com.ramirezabril.mobility_sharing.repository.RatingRepository;
+import com.ramirezabril.mobility_sharing.repository.TravelRepository;
 import com.ramirezabril.mobility_sharing.repository.UserRepository;
+import com.ramirezabril.mobility_sharing.repository.UserTravelRepository;
 import com.ramirezabril.mobility_sharing.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service("userService")
@@ -27,6 +30,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     RatingRepository ratingRepository;
+
+    @Autowired
+    private TravelRepository travelRepository;
+
+    @Autowired
+    private UserTravelRepository userTravelRepository;
 
     @Override
     public Optional<UserModel> getUserByToken(String token) {
@@ -133,10 +142,45 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public void computeEcoRanks() {
+        List<Integer> userIds = userRepository.getUserIds();
+
+        for (Integer userId : userIds) {
+            long score = calculateUserEcoScore(userId);
+            int ecoRankId = determineEcoRankId(score);
+            userRepository.updateEcoRank(userId, ecoRankId);
+        }
+    }
+
+    /**
+     * Calculates the eco score for a user based on three main factors:
+     * - Number of completed travels as a driver
+     * - Number of completed recurring travels as a driver (higher weight)
+     * - Number of confirmed travels as a passenger
+     */
+    private long calculateUserEcoScore(Integer userId) {
+        long completed = travelRepository.countCompletedTravelsByDriverId(userId).orElse(0L);
+        long recurring = travelRepository.countCompletedRecurringTravelsByDriverId(userId).orElse(0L);
+        long enrolled = userTravelRepository.countConfirmedUserTravelsByUserId(userId).orElse(0L);
+
+        // Assign weights to each activity type
+        return (completed * 5) + (recurring * 8) + (enrolled * 2);
+    }
+
+    /**
+     * Determines the EcoRank level (1–5) based on the total score.
+     * Higher scores reflect greater eco-contributions.
+     */
+    private int determineEcoRankId(long score) {
+        if (score >= 600) return 5;
+        if (score >= 300) return 4;
+        if (score >= 150) return 3;
+        if (score >= 50) return 2;
+        return 1;
+    }
 
     private boolean isAdmin(UserModel user) {
         return "ADMIN".equals(user.getRole().getName());
     }
-
-
 }
