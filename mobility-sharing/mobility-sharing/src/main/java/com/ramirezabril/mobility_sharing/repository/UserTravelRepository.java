@@ -33,4 +33,6 @@ public interface UserTravelRepository extends JpaRepository<UserTravel, Serializ
     @Query(value = "SELECT COUNT(*) FROM user_travel WHERE user_id = ?1 AND status = 'confirmed'", nativeQuery = true)
     Optional<Long> countConfirmedUserTravelsByUserId(int userId);
 
+    @Query(value = "SELECT COUNT(*) FROM user_travel WHERE travel_id = ?1 and user_travel.status = 'confirmed'", nativeQuery = true)
+    Optional<Long> countByTravelIdAndCompleted(int travelId);
 }

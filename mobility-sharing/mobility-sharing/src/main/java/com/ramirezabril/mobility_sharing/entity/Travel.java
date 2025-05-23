@@ -1,8 +1,10 @@
 package com.ramirezabril.mobility_sharing.entity;
 
+import com.ramirezabril.mobility_sharing.util.EnvironmentalActionLevel;
 import com.ramirezabril.mobility_sharing.util.TravelStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,6 +17,7 @@ import java.time.LocalTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Travel {
 
     @Id
@@ -63,8 +66,14 @@ public class Travel {
     @Column(nullable = false)
     private TravelStatus status = TravelStatus.ACTIVE;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "environmental_action_level", nullable = false, length = 6,
+            columnDefinition = "ENUM('LOW','MEDIUM','HIGH')")
+    private EnvironmentalActionLevel environmentalActionLevel = EnvironmentalActionLevel.HIGH;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
 }
+
