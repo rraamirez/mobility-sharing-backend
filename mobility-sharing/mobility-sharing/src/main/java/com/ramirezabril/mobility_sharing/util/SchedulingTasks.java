@@ -26,4 +26,6 @@ public class SchedulingTasks {
     public void updateUsersRatings() {
         userService.computeUserRatings();
     }
+
+    //TODO: delete travels and user that are older than a week
 }
