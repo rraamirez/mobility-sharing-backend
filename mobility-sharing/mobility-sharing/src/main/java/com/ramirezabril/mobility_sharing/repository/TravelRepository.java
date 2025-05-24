@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,5 +71,31 @@ public interface TravelRepository extends JpaRepository<Travel, Serializable> {
     void updateEnvironmentalActionLevel(
             @Param("id") Integer travelId,
             @Param("level") EnvironmentalActionLevel level
+    );
+
+    @Query(value = """
+            SELECT COUNT(*) FROM travel 
+            WHERE driver_id = :userId 
+                AND status = 'COMPLETED' 
+                AND date BETWEEN :from AND :to
+            """, nativeQuery = true)
+    Optional<Long> countCompletedTravelsByDriverIdAndDateBetween(
+            @Param("userId") Integer userId,
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to
+    );
+
+    @Query(value = """
+            SELECT COUNT(*) 
+            FROM travel 
+            WHERE driver_id = :userId 
+                AND status = 'COMPLETED' 
+                AND travel_recurrence_id IS NOT NULL 
+                AND date BETWEEN :from AND :to
+            """, nativeQuery = true)
+    Optional<Long> countCompletedRecurringTravelsByDriverIdAndDateBetween(
+            @Param("userId") Integer userId,
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to
     );
 }
