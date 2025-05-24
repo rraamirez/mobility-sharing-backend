@@ -16,10 +16,14 @@ public class SchedulingTasks {
     @Autowired
     UserRepository userRepository;
 
-    @Scheduled(cron = "0 0 3 * * *")
+    // Scheduled task to credit each user with their calculated weekly rupees
+    @Scheduled(cron = "0 0 3 * * MON")
     public void updateUsersRupees() {
-        List<Integer> userIds = userRepository.getUserIds();
-        userIds.forEach(userId -> userService.updateRupeeWallet(100, userId));
+        List<Integer> userIds = List.of(1);
+        userIds.forEach(userId -> {
+            int weeklyRupees = userService.calculateWeeklyRupees(userId);
+            userService.computeRupeeWallet(weeklyRupees, userId);
+        });
     }
 
     @Scheduled(cron = "0 0 5 * * *")
@@ -27,5 +31,9 @@ public class SchedulingTasks {
         userService.computeUserRatings();
     }
 
-    //TODO: delete travels and user that are older than a week
+    //add ecoranks calculations once a week
+    @Scheduled(cron = "0 0 0 * * MON")
+    public void updateUsersEcoRanks() {
+        userService.computeEcoRanks();
+    }
 }

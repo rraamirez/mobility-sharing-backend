@@ -2,7 +2,6 @@ package com.ramirezabril.mobility_sharing.service.impl;
 
 import com.ramirezabril.mobility_sharing.converter.TravelConverter;
 import com.ramirezabril.mobility_sharing.converter.TravelRecurrenceConverter;
-import com.ramirezabril.mobility_sharing.entity.Travel;
 import com.ramirezabril.mobility_sharing.entity.TravelRecurrence;
 import com.ramirezabril.mobility_sharing.model.TravelModel;
 import com.ramirezabril.mobility_sharing.model.UserModel;
@@ -10,6 +9,7 @@ import com.ramirezabril.mobility_sharing.repository.TravelRecurrenceRepository;
 import com.ramirezabril.mobility_sharing.repository.TravelRepository;
 import com.ramirezabril.mobility_sharing.repository.UserTravelRepository;
 import com.ramirezabril.mobility_sharing.service.TravelService;
+import com.ramirezabril.mobility_sharing.util.EnvironmentalActionLevel;
 import com.ramirezabril.mobility_sharing.util.TravelStatus;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -44,6 +44,8 @@ public class TravelServiceImpl implements TravelService {
     public TravelModel createTravel(TravelModel travelModel, UserModel driver) {
         travelModel.setDriver(driver);
         travelModel.setStatus(TravelStatus.ACTIVE);
+        travelModel.setEnvironmentalActionLevel(EnvironmentalActionLevel.HIGH);
+
         var savedTravel = travelRepository.save(TravelConverter.toTravelEntity(travelModel));
         return TravelConverter.toTravelModel(savedTravel);
     }
@@ -55,19 +57,23 @@ public class TravelServiceImpl implements TravelService {
         travelModels.forEach(travelModel -> {
             travelModel.setDriver(driver);
             travelModel.setStatus(TravelStatus.ACTIVE);
-            travelModel.setTravelRecurrenceModel(TravelRecurrenceConverter.entityToModel(travelRecurrence));
+            travelModel.setTravelRecurrenceModel(
+                    TravelRecurrenceConverter.entityToModel(travelRecurrence)
+            );
+            travelModel.setEnvironmentalActionLevel(EnvironmentalActionLevel.HIGH);
         });
 
-        List<Travel> travelEntities = travelModels.stream()
+        var travelEntities = travelModels.stream()
                 .map(TravelConverter::toTravelEntity)
                 .toList();
 
-        List<Travel> savedTravels = travelRepository.saveAll(travelEntities);
+        var savedTravels = travelRepository.saveAll(travelEntities);
 
         return savedTravels.stream()
                 .map(TravelConverter::toTravelModel)
                 .toList();
     }
+
 
     @Override
     public List<List<TravelModel>> getRecurringTravels() {

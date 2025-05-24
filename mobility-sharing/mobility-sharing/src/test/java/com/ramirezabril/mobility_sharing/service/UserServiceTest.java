@@ -6,7 +6,10 @@ import com.ramirezabril.mobility_sharing.entity.Role;
 import com.ramirezabril.mobility_sharing.entity.User;
 import com.ramirezabril.mobility_sharing.model.RoleModel;
 import com.ramirezabril.mobility_sharing.model.UserModel;
+import com.ramirezabril.mobility_sharing.model.WeeklyEnvironmentalStatsDTO;
+import com.ramirezabril.mobility_sharing.repository.TravelRepository;
 import com.ramirezabril.mobility_sharing.repository.UserRepository;
+import com.ramirezabril.mobility_sharing.repository.UserTravelRepository;
 import com.ramirezabril.mobility_sharing.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +19,8 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,6 +33,12 @@ public class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private TravelRepository travelRepository;
+
+    @Mock
+    private UserTravelRepository userTravelRepository;
 
     @Mock
     private UserConverter userConverter;
@@ -214,5 +225,95 @@ public class UserServiceTest {
 
         assertEquals(0, user.getRupeeWallet());
         verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void testCalculateWeeklyRupees_ShouldCalculateCorrectAmount() {
+        int userId = 1;
+
+        when(travelRepository.countCompletedTravelsByDriverIdAndDateBetween(anyInt(), any(), any()))
+                .thenReturn(Optional.of(3L)); // 3 x 6 = 18
+        when(travelRepository.countCompletedRecurringTravelsByDriverIdAndDateBetween(anyInt(), any(), any()))
+                .thenReturn(Optional.of(2L)); // 2 x 8 = 16
+        when(userTravelRepository.countConfirmedUserTravelsByUserIdAndDateBetween(anyInt(), any(), any()))
+                .thenReturn(Optional.of(4L)); // 4 x 4 = 16
+
+        int result = userService.calculateWeeklyRupees(userId);
+
+        assertEquals(Math.round((18 + 16 + 16) * 3), result);
+    }
+
+    @Test
+    void testGetWeeklyEnvironmentalStats_EmptyData_ShouldReturnZeros() {
+        int userId = 1;
+
+        when(travelRepository.countCompletedTravelsByDriverIdAndDateBetween(anyInt(), any(), any()))
+                .thenReturn(Optional.of(0L));
+        when(userTravelRepository.countUserTravelsForDriverByDateBetween(anyInt(), any(), any()))
+                .thenReturn(Optional.of(0L));
+        when(userTravelRepository.countConfirmedUserTravelsByUserIdAndDateBetween(anyInt(), any(), any()))
+                .thenReturn(Optional.of(0L));
+        when(travelRepository.countCompletedTravelsByDriverId(userId)).thenReturn(Optional.of(0L));
+        when(userTravelRepository.countConfirmedUserTravelsByUserId(userId)).thenReturn(Optional.of(0L));
+        when(userTravelRepository.countAllConfirmedPassengersForDriver(userId)).thenReturn(Optional.of(0L));
+
+        WeeklyEnvironmentalStatsDTO dto = userService.getWeeklyEnvironmentalStats(userId);
+
+        assertEquals(0, dto.getConfirmedRides());
+        assertEquals(0, dto.getWeeklyRupees());
+        assertEquals(0.0, dto.getAveragePassengersPerCompletedTrip());
+        assertEquals(0.0, dto.getCo2SavedKg());
+        assertEquals(0.0, dto.getCo2SavedKgTotal());
+    }
+
+
+    @Test
+    void testCalculateTotalCo2Saved_ShouldReturnExpectedValue() {
+        int userId = 1;
+
+        when(travelRepository.countCompletedTravelsByDriverId(userId)).thenReturn(Optional.of(5L));
+        when(userTravelRepository.countConfirmedUserTravelsByUserId(userId)).thenReturn(Optional.of(3L));
+        when(userTravelRepository.countAllConfirmedPassengersForDriver(userId)).thenReturn(Optional.of(7L));
+
+        WeeklyEnvironmentalStatsDTO dto = userService.getWeeklyEnvironmentalStats(userId);
+
+        double expectedTotal = (5 + 3 + 7) * 10.0 * 0.21;
+        assertEquals(expectedTotal, dto.getCo2SavedKgTotal());
+    }
+
+    @Test
+    void testCalculateUserEcoScore_ShouldApplyWeightsCorrectly() {
+        int userId = 1;
+
+        when(travelRepository.countCompletedTravelsByDriverId(userId)).thenReturn(Optional.of(3L));     // 3 x 6 = 18
+        when(travelRepository.countCompletedRecurringTravelsByDriverId(userId)).thenReturn(Optional.of(2L)); // 2 x 8 = 16
+        when(userTravelRepository.countConfirmedUserTravelsByUserId(userId)).thenReturn(Optional.of(4L));    // 4 x 4 = 16
+
+        when(userRepository.getUserIds()).thenReturn(List.of(userId));
+        doNothing().when(userRepository).updateEcoRank(eq(userId), anyInt());
+
+        userService.computeEcoRanks();
+
+        verify(userRepository).updateEcoRank(userId, 2);
+    }
+
+    @Test
+    void testDetermineEcoRankId_Boundaries() {
+        assertEquals(1, invokeDetermineEcoRankId(0));
+        assertEquals(2, invokeDetermineEcoRankId(50));
+        assertEquals(3, invokeDetermineEcoRankId(150));
+        assertEquals(4, invokeDetermineEcoRankId(300));
+        assertEquals(5, invokeDetermineEcoRankId(600));
+    }
+
+    private int invokeDetermineEcoRankId(long score) {
+        try {
+            Method method = UserServiceImpl.class.getDeclaredMethod("determineEcoRankId", long.class);
+            method.setAccessible(true);
+            return (int) method.invoke(userService, score);
+        } catch (Exception e) {
+            fail("Reflection failed: " + e.getMessage());
+            return -1;
+        }
     }
 }

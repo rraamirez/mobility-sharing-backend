@@ -10,6 +10,7 @@ import com.ramirezabril.mobility_sharing.repository.UserRepository;
 import com.ramirezabril.mobility_sharing.repository.UserTravelRepository;
 import com.ramirezabril.mobility_sharing.service.UserService;
 import com.ramirezabril.mobility_sharing.service.UserTravelService;
+import com.ramirezabril.mobility_sharing.util.EnvironmentalActionLevel;
 import com.ramirezabril.mobility_sharing.util.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -116,24 +117,28 @@ public class UserTravelServiceImpl implements UserTravelService {
     @Override
     @Transactional
     public Optional<UserTravelModel> acceptUserTravel(Integer travelId, Integer userId) {
-        var userTravel = userTravelRepository.findConcreteUserTravel(userId, travelId);
-
-        if (userTravel.isPresent() && userTravel.get().getStatus().equals(Status.confirmed)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User travel is already confirmed");
+        var utOpt = userTravelRepository.findConcreteUserTravel(userId, travelId);
+        if (utOpt.isEmpty()) return Optional.empty();
+        var ut = utOpt.get();
+        if (ut.getStatus() == Status.confirmed) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Already confirmed");
         }
 
+        long confirmedBefore = userTravelRepository
+                .countByTravelIdAndCompleted(travelId)
+                .orElse(0L);
 
-        if (userTravel.isPresent()) {
-            var driver = userTravel.get().getTravel().getDriver();
-            var rupeeComputation = userTravel.get().getTravel().getPrice();
-            userService.computeRupeeWallet(rupeeComputation, driver.getId());
+        userService.computeRupeeWallet(ut.getTravel().getPrice(), ut.getTravel().getDriver().getId());
 
-            var acceptedTravel = userTravel.get();
-            acceptedTravel.setStatus(Status.confirmed);
-            var toReturn = userTravelRepository.save(acceptedTravel);
-            return Optional.of(UserTravelConverter.toUserTravelModel(toReturn));
-        }
-        return Optional.empty();
+        ut.setStatus(Status.confirmed);
+        userTravelRepository.save(ut);
+
+        var level = (confirmedBefore == 0)
+                ? EnvironmentalActionLevel.MEDIUM
+                : EnvironmentalActionLevel.LOW;
+        travelRepository.updateEnvironmentalActionLevel(travelId, level);
+
+        return Optional.of(UserTravelConverter.toUserTravelModel(ut));
     }
 
 

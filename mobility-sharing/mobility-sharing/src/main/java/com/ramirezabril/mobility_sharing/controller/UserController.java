@@ -1,6 +1,7 @@
 package com.ramirezabril.mobility_sharing.controller;
 
 import com.ramirezabril.mobility_sharing.model.UserModel;
+import com.ramirezabril.mobility_sharing.model.WeeklyEnvironmentalStatsDTO;
 import com.ramirezabril.mobility_sharing.service.UserService;
 import com.ramirezabril.mobility_sharing.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,5 +54,19 @@ public class UserController {
         String token = tokenUtil.extractToken(authHeader);
         userService.deleteUser(id, token);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/weekly-environmental-stats")
+    public ResponseEntity<WeeklyEnvironmentalStatsDTO> getWeeklyEnvironmentalStats(
+            @RequestHeader("Authorization") String authHeader) {
+
+        String token = tokenUtil.extractToken(authHeader);
+        return userService.getUserByToken(token)
+                .map(user -> {
+                    WeeklyEnvironmentalStatsDTO stats =
+                            userService.getWeeklyEnvironmentalStats(user.getId());
+                    return ResponseEntity.ok(stats);
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
 }
