@@ -26,7 +26,8 @@ public class TravelConverter {
                 travel.getLongitudeOrigin() != null ? travel.getLongitudeOrigin() : null,
                 travel.getLatitudeDestination() != null ? travel.getLatitudeDestination() : null,
                 travel.getLongitudeDestination() != null ? travel.getLongitudeDestination() : null,
-                travel.getStatus()
+                travel.getStatus(),
+                travel.getEnvironmentalActionLevel()
         );
     }
 
@@ -60,6 +61,7 @@ public class TravelConverter {
             travel.setLongitudeDestination(travelModel.getLongitudeDestination());
         }
         travel.setStatus(travelModel.getStatus());
+        travel.setEnvironmentalActionLevel(travelModel.getEnvironmentalActionLevel());
         return travel;
     }
 }

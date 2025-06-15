@@ -1,6 +1,7 @@
 package com.ramirezabril.mobility_sharing.service;
 
 import com.ramirezabril.mobility_sharing.model.UserModel;
+import com.ramirezabril.mobility_sharing.model.WeeklyEnvironmentalStatsDTO;
 
 import java.util.Optional;
 
@@ -16,4 +17,10 @@ public interface UserService {
     void deleteUser(Integer userId, String token);
 
     void computeUserRatings();
+
+    void computeEcoRanks();
+
+    int calculateWeeklyRupees(Integer userId);
+
+    WeeklyEnvironmentalStatsDTO getWeeklyEnvironmentalStats(Integer userId);
 }

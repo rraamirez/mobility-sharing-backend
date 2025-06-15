@@ -4,8 +4,11 @@ import com.ramirezabril.mobility_sharing.auth.service.JwtService;
 import com.ramirezabril.mobility_sharing.converter.UserConverter;
 import com.ramirezabril.mobility_sharing.entity.User;
 import com.ramirezabril.mobility_sharing.model.UserModel;
+import com.ramirezabril.mobility_sharing.model.WeeklyEnvironmentalStatsDTO;
 import com.ramirezabril.mobility_sharing.repository.RatingRepository;
+import com.ramirezabril.mobility_sharing.repository.TravelRepository;
 import com.ramirezabril.mobility_sharing.repository.UserRepository;
+import com.ramirezabril.mobility_sharing.repository.UserTravelRepository;
 import com.ramirezabril.mobility_sharing.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,10 +17,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+import java.util.List;
 import java.util.Optional;
 
 @Service("userService")
 public class UserServiceImpl implements UserService {
+
+    private static final int RUPEES_PER_COMPLETED_TRIP = 6;
+    private static final int RUPEES_PER_RECURRING_TRIP = 8;
+    private static final int RUPEES_PER_CONFIRMED_RIDE = 4;
 
     @Autowired
     private JwtService jwtService;
@@ -27,6 +38,16 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     RatingRepository ratingRepository;
+
+    @Autowired
+    private TravelRepository travelRepository;
+
+    @Autowired
+    private UserTravelRepository userTravelRepository;
+
+    private boolean isAdmin(UserModel user) {
+        return "ADMIN".equals(user.getRole().getName());
+    }
 
     @Override
     public Optional<UserModel> getUserByToken(String token) {
@@ -57,8 +78,6 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
         }
     }
-
-    //private final PasswordEncoder passwordEncoder;
 
     public Optional<UserModel> updateUser(UserModel user, String token) {
         String username = jwtService.extractUsername(token);
@@ -133,10 +152,143 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public void computeEcoRanks() {
+        List<Integer> userIds = userRepository.getUserIds();
 
-    private boolean isAdmin(UserModel user) {
-        return "ADMIN".equals(user.getRole().getName());
+        for (Integer userId : userIds) {
+            long score = calculateUserEcoScore(userId);
+            int ecoRankId = determineEcoRankId(score);
+            userRepository.updateEcoRank(userId, ecoRankId);
+        }
+    }
+
+    /**
+     * Calculates the eco score for a user based on three main factors:
+     * - Number of completed travels as a driver
+     * - Number of completed recurring travels as a driver (higher weight)
+     * - Number of confirmed travels as a passenger
+     */
+    private long calculateUserEcoScore(Integer userId) {
+        long completed = travelRepository.countCompletedTravelsByDriverId(userId).orElse(0L);
+        long recurring = travelRepository.countCompletedRecurringTravelsByDriverId(userId).orElse(0L);
+        long enrolled = userTravelRepository.countConfirmedUserTravelsByUserId(userId).orElse(0L);
+
+        // Assign weights to each activity type
+        return (completed * RUPEES_PER_COMPLETED_TRIP) + (recurring * RUPEES_PER_RECURRING_TRIP) + (enrolled * RUPEES_PER_CONFIRMED_RIDE);
+    }
+
+    /**
+     * Determines the EcoRank level (1–5) based on the total score.
+     * Higher scores reflect greater eco-contributions.
+     */
+    private int determineEcoRankId(long score) {
+        if (score >= 600) return 5;
+        if (score >= 300) return 4;
+        if (score >= 150) return 3;
+        if (score >= 50) return 2;
+        return 1;
+    }
+
+    @Override
+    public int calculateWeeklyRupees(Integer userId) {
+        LocalDate today = LocalDate.now();
+        LocalDate weekAgo = today.minusWeeks(1);
+
+        long completed = travelRepository
+                .countCompletedTravelsByDriverIdAndDateBetween(userId, weekAgo, today)
+                .orElse(0L);
+
+        long recurring = travelRepository
+                .countCompletedRecurringTravelsByDriverIdAndDateBetween(userId, weekAgo, today)
+                .orElse(0L);
+
+        long confirmed = userTravelRepository
+                .countConfirmedUserTravelsByUserIdAndDateBetween(userId, weekAgo, today)
+                .orElse(0L);
+
+        int baseWeeklyReward = (int) (
+                completed * RUPEES_PER_COMPLETED_TRIP +
+                        recurring * RUPEES_PER_RECURRING_TRIP +
+                        confirmed * RUPEES_PER_CONFIRMED_RIDE
+        );
+
+        final double REWARD_MULTIPLIER = 3;
+        return (int) Math.round(baseWeeklyReward * REWARD_MULTIPLIER);
+    }
+
+    @Override
+    public WeeklyEnvironmentalStatsDTO getWeeklyEnvironmentalStats(Integer userId) {
+        LocalDate startOfWeek = getStartOfWeek();
+        LocalDate endOfWeek = getEndOfWeek();
+
+        long completedTrips = getCompletedTripsThisWeek(userId, startOfWeek, endOfWeek);
+        long confirmedRides = getConfirmedRidesThisWeek(userId, startOfWeek, endOfWeek);
+        long passengersAsDriver = getConfirmedPassengersThisWeek(userId, startOfWeek, endOfWeek);
+        int weeklyRupees = calculateWeeklyRupees(userId);
+
+        double avgPassengers = completedTrips > 0
+                ? (double) passengersAsDriver / completedTrips
+                : 0.0;
+
+        double co2SavedKg = calculateCo2Saved(completedTrips, confirmedRides);
+        double co2SavedKgTotal = calculateTotalCo2Saved(userId);
+
+        return WeeklyEnvironmentalStatsDTO.builder()
+                .averagePassengersPerCompletedTrip(avgPassengers)
+                .confirmedRides((int) confirmedRides)
+                .weeklyRupees(weeklyRupees)
+                .co2SavedKg(co2SavedKg)
+                .co2SavedKgTotal(co2SavedKgTotal)
+                .build();
     }
 
 
+    private LocalDate getStartOfWeek() {
+        return LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    }
+
+    private LocalDate getEndOfWeek() {
+        return LocalDate.now().with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+    }
+
+    private long getCompletedTripsThisWeek(Integer userId, LocalDate start, LocalDate end) {
+        return travelRepository.countCompletedTravelsByDriverIdAndDateBetween(userId, start, end).orElse(0L);
+    }
+
+    private long getConfirmedRidesThisWeek(Integer userId, LocalDate start, LocalDate end) {
+        return userTravelRepository.countConfirmedUserTravelsByUserIdAndDateBetween(userId, start, end).orElse(0L);
+    }
+
+    private long getConfirmedPassengersThisWeek(Integer userId, LocalDate start, LocalDate end) {
+        return userTravelRepository.countUserTravelsForDriverByDateBetween(userId, start, end).orElse(0L);
+    }
+
+    private double calculateCo2Saved(long completedTrips, long confirmedRides) {
+        final double AVG_KM_PER_TRIP = 10.0;
+        final double CO2_PER_KM = 0.21;
+        return (completedTrips + confirmedRides) * AVG_KM_PER_TRIP * CO2_PER_KM;
+    }
+
+
+    private double calculateTotalCo2Saved(Integer userId) {
+        final double AVG_KM_PER_TRIP = 10.0;
+        final double CO2_PER_KM = 0.21;
+
+        long totalCompletedTrips = travelRepository
+                .countCompletedTravelsByDriverId(userId)
+                .orElse(0L);
+
+        long totalConfirmedRides = userTravelRepository
+                .countConfirmedUserTravelsByUserId(userId)
+                .orElse(0L);
+
+        long totalPassengersAsDriver = userTravelRepository
+                .countAllConfirmedPassengersForDriver(userId)
+                .orElse(0L);
+
+        long totalContributions = totalCompletedTrips + totalConfirmedRides + totalPassengersAsDriver;
+
+        return totalContributions * AVG_KM_PER_TRIP * CO2_PER_KM;
+    }
 }

@@ -24,5 +24,11 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Transactional
     @Query(value = "UPDATE users SET rating = :rating WHERE id = :userId", nativeQuery = true)
     void updateUserRating(@Param("userId") Integer userId, @Param("rating") int rating);
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE users SET eco_rank_id = ?2 WHERE id = ?1", nativeQuery = true)
+    void updateEcoRank(int userId, int ecoRankId);
+
 }
 
