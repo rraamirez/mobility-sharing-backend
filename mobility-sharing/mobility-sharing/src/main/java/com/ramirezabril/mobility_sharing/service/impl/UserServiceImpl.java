@@ -195,6 +195,10 @@ public class UserServiceImpl implements UserService {
         LocalDate today = LocalDate.now();
         LocalDate weekAgo = today.minusWeeks(1);
 
+        long totalConfirmedPassengers = userTravelRepository
+                .countUserTravelsForDriverByDateBetween(userId, weekAgo, today)
+                .orElse(0L);
+
         long completed = travelRepository
                 .countCompletedTravelsByDriverIdAndDateBetween(userId, weekAgo, today)
                 .orElse(0L);
@@ -213,9 +217,19 @@ public class UserServiceImpl implements UserService {
                         confirmed * RUPEES_PER_CONFIRMED_RIDE
         );
 
+        // Bonus: if driver confirmed passengers are at least double the completed trips,
+        // apply a 20% bonus on base reward
+        double efficiencyBonus = 0;
+        if (completed > 0 && totalConfirmedPassengers >= 2 * completed) {
+            efficiencyBonus = baseWeeklyReward * 0.2;
+        }
+
         final double REWARD_MULTIPLIER = 3;
-        return (int) Math.round(baseWeeklyReward * REWARD_MULTIPLIER);
+
+        long finalReward = Math.round((baseWeeklyReward + efficiencyBonus) * REWARD_MULTIPLIER);
+        return (int) Math.min(finalReward, Integer.MAX_VALUE);
     }
+
 
     @Override
     public WeeklyEnvironmentalStatsDTO getWeeklyEnvironmentalStats(Integer userId) {
@@ -224,14 +238,14 @@ public class UserServiceImpl implements UserService {
 
         long completedTrips = getCompletedTripsThisWeek(userId, startOfWeek, endOfWeek);
         long confirmedRides = getConfirmedRidesThisWeek(userId, startOfWeek, endOfWeek);
-        long passengersAsDriver = getConfirmedPassengersThisWeek(userId, startOfWeek, endOfWeek);
+        long passengersThisWeek = getConfirmedPassengersThisWeek(userId, startOfWeek, endOfWeek);
         int weeklyRupees = calculateWeeklyRupees(userId);
 
         double avgPassengers = completedTrips > 0
-                ? (double) passengersAsDriver / completedTrips
+                ? (double) passengersThisWeek / completedTrips
                 : 0.0;
 
-        double co2SavedKg = calculateCo2Saved(completedTrips, confirmedRides);
+        double co2SavedKg = calculateCo2Saved(completedTrips, confirmedRides, passengersThisWeek);
         double co2SavedKgTotal = calculateTotalCo2Saved(userId);
 
         return WeeklyEnvironmentalStatsDTO.builder()
@@ -264,10 +278,10 @@ public class UserServiceImpl implements UserService {
         return userTravelRepository.countUserTravelsForDriverByDateBetween(userId, start, end).orElse(0L);
     }
 
-    private double calculateCo2Saved(long completedTrips, long confirmedRides) {
+    private double calculateCo2Saved(long completedTrips, long confirmedRides, long confirmedPassengers) {
         final double AVG_KM_PER_TRIP = 10.0;
         final double CO2_PER_KM = 0.21;
-        return (completedTrips + confirmedRides) * AVG_KM_PER_TRIP * CO2_PER_KM;
+        return (completedTrips + confirmedRides + confirmedPassengers) * AVG_KM_PER_TRIP * CO2_PER_KM;
     }
 
 

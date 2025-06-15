@@ -31,13 +31,12 @@ public class AuthService {
 
 
     public TokenResponse register(RegisterRequest registerRequest) {
-        //add rating and eco rank? check if necessary
         var user = User.builder()
                 .name(registerRequest.name())
                 .email(registerRequest.email())
                 .password(passwordEncoder.encode(registerRequest.password()))
                 .username(registerRequest.username())
-                .rupeeWallet(1000)
+                .rupeeWallet(100)
                 .role(new Role(registerRequest.roleId(), null))
                 .ecoRank(ecoRanksUtils.getEcoRankById(DEFAULT_RANK))
                 .build();

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/travel")
@@ -26,16 +27,16 @@ public class TravelController {
     @Autowired
     private TokenUtil tokenUtil;
 
-    @GetMapping("/")
-    public ResponseEntity<List<TravelModel>> getAllTravels(@RequestHeader("Authorization") String authHeader) {
-        return ResponseEntity.ok().body(travelService.getAllTravels());
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<TravelModel> getTravelById(@PathVariable Integer id, @RequestHeader("Authorization") String authHeader) {
         return travelService.getTravelById(id)
                 .map(travel -> ResponseEntity.ok().body(travel))
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<List<TravelModel>> getAllTravels(@RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok().body(travelService.getAllTravels());
     }
 
     @PostMapping("/")
@@ -136,6 +137,17 @@ public class TravelController {
 
     @GetMapping("/driver/{driverId}")
     public ResponseEntity<List<TravelModel>> getTravelsByDriver(@PathVariable Integer driverId, @RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = tokenUtil.extractToken(authHeader);
+        UserModel userLogged = userService.getUserByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        if (!Objects.equals(driverId, userLogged.getId())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
         return ResponseEntity.ok().body(travelService.getTravelsByDriver(driverId));
     }
 

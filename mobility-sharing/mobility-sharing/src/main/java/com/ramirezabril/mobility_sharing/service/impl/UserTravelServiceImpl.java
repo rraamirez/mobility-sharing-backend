@@ -37,6 +37,7 @@ public class UserTravelServiceImpl implements UserTravelService {
     private UserService userService;
 
     //todo research how to handle multiple transactional operations
+
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Optional<UserTravelModel> addUserTravel(UserTravelModel userTravelModel) {
@@ -59,8 +60,6 @@ public class UserTravelServiceImpl implements UserTravelService {
         if (userNotEnrolled) {
             userTravelModel.setStatus(Status.pending);
             UserTravel savedEntity = userTravelRepository.save(UserTravelConverter.toUserTravelEntity(userTravelModel));
-            //userService.computeRupeeWallet(-(savedEntity.getTravel().getPrice()), savedEntity.getUser().getId());
-
             return Optional.of(UserTravelConverter.toUserTravelModel(savedEntity));
         } else {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "User is already enrolled in this travel");
@@ -102,10 +101,6 @@ public class UserTravelServiceImpl implements UserTravelService {
         }
 
         if (userTravel.isPresent()) {
-            var userRejected = userTravel.get().getUser();
-            var rupeeWallet = userTravel.get().getTravel().getPrice();
-            userService.computeRupeeWallet(rupeeWallet, userRejected.getId());
-
             var rejected = userTravel.get();
             rejected.setStatus(Status.canceled);
             var toReturn = userTravelRepository.save(rejected);
@@ -124,18 +119,28 @@ public class UserTravelServiceImpl implements UserTravelService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Already confirmed");
         }
 
-        long confirmedBefore = userTravelRepository
-                .countByTravelIdAndCompleted(travelId)
-                .orElse(0L);
 
+        userService.computeRupeeWallet(-ut.getTravel().getPrice(), userId);
         userService.computeRupeeWallet(ut.getTravel().getPrice(), ut.getTravel().getDriver().getId());
+
 
         ut.setStatus(Status.confirmed);
         userTravelRepository.save(ut);
 
-        var level = (confirmedBefore == 0)
-                ? EnvironmentalActionLevel.MEDIUM
-                : EnvironmentalActionLevel.LOW;
+        long confirmedBefore = userTravelRepository
+                .countByTravelIdAndCompleted(travelId)
+                .orElse(0L);
+
+        EnvironmentalActionLevel level;
+        if (confirmedBefore == 0) {
+            level = EnvironmentalActionLevel.HIGH;
+        } else if (confirmedBefore == 1) {
+            level = EnvironmentalActionLevel.MEDIUM;
+        } else {
+            level = EnvironmentalActionLevel.LOW;
+        }
+
+
         travelRepository.updateEnvironmentalActionLevel(travelId, level);
 
         return Optional.of(UserTravelConverter.toUserTravelModel(ut));
