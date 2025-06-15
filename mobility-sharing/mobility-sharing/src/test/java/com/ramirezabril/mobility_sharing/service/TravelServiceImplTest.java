@@ -131,7 +131,8 @@ class TravelServiceImplTest {
     void testGetTravelsByDriver() {
         Integer driverId = 1;
         TravelModel travelModel = new TravelModel();
-        when(travelRepository.findByDriverId(driverId)).thenReturn(List.of(TravelConverter.toTravelEntity(travelModel)));
+        when(travelRepository.findByDriverId(driverId))
+                .thenReturn(List.of(TravelConverter.toTravelEntity(travelModel)));
 
         List<TravelModel> result = travelService.getTravelsByDriver(driverId);
 
@@ -147,13 +148,15 @@ class TravelServiceImplTest {
         TravelModel travelModel = new TravelModel();
         UserModel userModel = new UserModel();
         userModel.setId(1);
-        when(travelRepository.findByOriginAndDestination(origin, destination, userModel.getId())).thenReturn(List.of(TravelConverter.toTravelEntity(travelModel)));
+        when(travelRepository.findByOriginAndDestination(origin, destination, userModel.getId()))
+                .thenReturn(List.of(TravelConverter.toTravelEntity(travelModel)));
 
         var result = travelService.getTravelsByOriginAndDestination(origin, destination, userModel);
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(travelRepository, times(1)).findByOriginAndDestination(origin, destination, userModel.getId());
+        verify(travelRepository, times(1))
+                .findByOriginAndDestination(origin, destination, userModel.getId());
     }
 
     @Test
