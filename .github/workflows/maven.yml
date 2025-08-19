@@ -1,0 +1,31 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Set up Maven 3.9.9
+        uses: stCarolas/setup-maven@v4
+        with:
+          maven-version: '3.9.9'
+
+      - name: Build & Test with Maven
+        working-directory: mobility-sharing/mobility-sharing
+        run: mvn -B clean verify
