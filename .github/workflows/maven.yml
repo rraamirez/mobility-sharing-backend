@@ -27,7 +27,8 @@ jobs:
           maven-version: '3.9.9'
 
       - name: Build & Test with Maven
-        run: mvn -B clean verify --file pom.xml
+        working-directory: mobility-sharing/mobility-sharing
+        run: mvn -B clean verify
 
       # Optional: Upload dependency graph to GitHub
       - name: Update dependency graph
