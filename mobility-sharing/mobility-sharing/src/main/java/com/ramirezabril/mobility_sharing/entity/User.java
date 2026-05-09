@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -48,6 +49,9 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "eco_rank_id", nullable = false)
     private EcoRank ecoRank;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<UserTravel> userTravelSet;
 
     @PrePersist
     protected void onCreate() {

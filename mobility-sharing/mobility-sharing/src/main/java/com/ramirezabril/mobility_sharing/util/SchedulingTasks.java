@@ -1,5 +1,6 @@
 package com.ramirezabril.mobility_sharing.util;
 
+import com.ramirezabril.mobility_sharing.entity.User;
 import com.ramirezabril.mobility_sharing.repository.UserRepository;
 import com.ramirezabril.mobility_sharing.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ public class SchedulingTasks {
     // Scheduled task to credit each user with their calculated weekly rupees
     @Scheduled(cron = "0 0 3 * * MON")
     public void updateUsersRupees() {
-        List<Integer> userIds = List.of(1);
+        List<Integer> userIds = userRepository.findAll().stream().map(User::getId).toList();
         userIds.forEach(userId -> {
             int weeklyRupees = userService.calculateWeeklyRupees(userId);
             userService.computeRupeeWallet(weeklyRupees, userId);

@@ -8,22 +8,31 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class MobilitySharingApplication {
 
     public static void main(String[] args) {
-        Dotenv dotenv = Dotenv.load();
+        Dotenv dotenv = Dotenv.configure()
+                .ignoreIfMissing()
+                .load();
 
-        System.setProperty("DB_URL", dotenv.get("DB_URL"));
-        System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
-        System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
-        System.setProperty("DB_DRIVER_CLASS", dotenv.get("DB_DRIVER_CLASS"));
+        setPropertyFromDotenv("DB_URL", dotenv);
+        setPropertyFromDotenv("DB_USERNAME", dotenv);
+        setPropertyFromDotenv("DB_PASSWORD", dotenv);
+        setPropertyFromDotenv("DB_DRIVER_CLASS", dotenv);
 
-        System.setProperty("JWT_SECRET_KEY", dotenv.get("JWT_SECRET_KEY"));
-        System.setProperty("JWT_EXPIRATION", dotenv.get("JWT_EXPIRATION"));
-        System.setProperty("JWT_REFRESH_TOKEN_EXPIRATION", dotenv.get("JWT_REFRESH_TOKEN_EXPIRATION"));
+        setPropertyFromDotenv("JWT_SECRET_KEY", dotenv);
+        setPropertyFromDotenv("JWT_EXPIRATION", dotenv);
+        setPropertyFromDotenv("JWT_REFRESH_TOKEN_EXPIRATION", dotenv);
 
-        System.setProperty("SPRING_SECURITY_USER_NAME", dotenv.get("SPRING_SECURITY_USER_NAME"));
-        System.setProperty("SPRING_SECURITY_USER_PASSWORD", dotenv.get("SPRING_SECURITY_USER_PASSWORD"));
+        setPropertyFromDotenv("SPRING_SECURITY_USER_NAME", dotenv);
+        setPropertyFromDotenv("SPRING_SECURITY_USER_PASSWORD", dotenv);
 
-        System.setProperty("SWAGGER_UI_PATH", dotenv.get("SWAGGER_UI_PATH"));
+        setPropertyFromDotenv("SWAGGER_UI_PATH", dotenv);
 
         SpringApplication.run(MobilitySharingApplication.class, args);
+    }
+
+    private static void setPropertyFromDotenv(String key, Dotenv dotenv) {
+        String value = dotenv.get(key);
+        if (value != null && !value.isBlank()) {
+            System.setProperty(key, value);
+        }
     }
 }

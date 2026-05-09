@@ -10,4 +10,4 @@ services:
       MYSQL_ROOT_PASSWORD: "root"
       MYSQL_DATABASE: "mobility_sharing_docker"
     volumes:
-      - C:/Users/raule/Desktop/TFG/BACKEND/mobility-sharing/mobility-sharing/bd/mobility_sharing_docker:/var/lib/mysql
+      - C:/dockerDB:/var/lib/mysql

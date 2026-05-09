@@ -44,7 +44,7 @@ public class AuthService {
         userRepository.save(user);
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
-        saveUserToken(user, refreshToken);
+        saveUserToken(user, jwtToken);
         return new TokenResponse(jwtToken, refreshToken);
     }
 
@@ -59,7 +59,7 @@ public class AuthService {
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
         revokeAllUserTokens(user);
-        saveUserToken(user, refreshToken);
+        saveUserToken(user, jwtToken);
         return new TokenResponse(jwtToken, refreshToken);
     }
 
@@ -90,7 +90,7 @@ public class AuthService {
             return null;
         }
 
-        final String accessToken = jwtService.generateRefreshToken(user);
+        final String accessToken = jwtService.generateToken(user);
         revokeAllUserTokens(user);
         saveUserToken(user, accessToken);
 
